@@ -162,50 +162,48 @@ export function HomeDashboard() {
       </div>
 
       {/* ── Transfer metrics ── */}
-      {metrics && (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-8">
-          <Card className="border-border/40 bg-card/50">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Transactions</span>
-                <ArrowRightLeft className="h-4 w-4 text-muted-foreground/60" />
-              </div>
-              <p className="mt-2 text-2xl font-bold">{fmtUsd(estTxns).replace("$", "")}</p>
-              <span className="text-xs text-muted-foreground">stablecoin transfers</span>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-8">
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Transactions</span>
+              <ArrowRightLeft className="h-4 w-4 text-muted-foreground/60" />
+            </div>
+            <p className="mt-2 text-2xl font-bold">{metrics ? fmtUsd(estTxns).replace("$", "") : "—"}</p>
+            <span className="text-xs text-muted-foreground">stablecoin transfers</span>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Volume</span>
+              <DollarSign className="h-4 w-4 text-muted-foreground/60" />
+            </div>
+            <p className="mt-2 text-2xl font-bold">{metrics ? fmtUsd(estVolume) : "—"}</p>
+            <span className="text-xs text-muted-foreground">transferred</span>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Senders</span>
+              <Users className="h-4 w-4 text-muted-foreground/60" />
+            </div>
+            <p className="mt-2 text-2xl font-bold">{metrics ? fmtUsd(estSenders).replace("$", "") : "—"}</p>
+            <span className="text-xs text-muted-foreground">unique addresses</span>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Receivers</span>
+              <UserCheck className="h-4 w-4 text-muted-foreground/60" />
+            </div>
+            <p className="mt-2 text-2xl font-bold">{metrics ? fmtUsd(estReceivers).replace("$", "") : "—"}</p>
+            <span className="text-xs text-muted-foreground">unique addresses</span>
             </CardContent>
           </Card>
-          <Card className="border-border/40 bg-card/50">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Volume</span>
-                <DollarSign className="h-4 w-4 text-muted-foreground/60" />
-              </div>
-              <p className="mt-2 text-2xl font-bold">{fmtUsd(estVolume)}</p>
-              <span className="text-xs text-muted-foreground">transferred</span>
-            </CardContent>
-          </Card>
-          <Card className="border-border/40 bg-card/50">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Senders</span>
-                <Users className="h-4 w-4 text-muted-foreground/60" />
-              </div>
-              <p className="mt-2 text-2xl font-bold">{fmtUsd(estSenders).replace("$", "")}</p>
-              <span className="text-xs text-muted-foreground">unique addresses</span>
-            </CardContent>
-          </Card>
-          <Card className="border-border/40 bg-card/50">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Receivers</span>
-                <UserCheck className="h-4 w-4 text-muted-foreground/60" />
-              </div>
-              <p className="mt-2 text-2xl font-bold">{fmtUsd(estReceivers).replace("$", "")}</p>
-              <span className="text-xs text-muted-foreground">unique addresses</span>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      </div>
 
       {/* Supply metrics removed — transfer metrics above + charts below are sufficient */}
 

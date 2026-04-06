@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowUpRight, ArrowDownRight, ExternalLink, Building2, Shield, FileCheck, Scale } from "lucide-react";
 import { DetailRowSkeleton, PageHeaderSkeleton, MetricCardSkeleton } from "@/components/skeleton";
+import { getCoinLogo } from "@/lib/stablecoins/logos";
 import { getIssuerBySlug, type IssuerProfile } from "@/lib/stablecoins/issuers";
 
 interface CoinData {
@@ -190,7 +191,10 @@ export default function IssuerDetailPage() {
                     onClick={() => window.location.href = `/coins/${coin.symbol.toLowerCase()}`}
                   >
                     <TableCell>
-                      <a href={`/coins/${coin.symbol.toLowerCase()}`} className="text-sm font-medium text-emerald-400 hover:underline">{coin.symbol}</a>
+                      <a href={`/coins/${coin.symbol.toLowerCase()}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-400 hover:underline">
+                        {getCoinLogo(coin.symbol) && <img src={getCoinLogo(coin.symbol)} alt="" className="h-4 w-4 rounded-full" />}
+                        {coin.symbol}
+                      </a>
                       <span className="ml-2 text-xs text-muted-foreground">{coin.name}</span>
                     </TableCell>
                     <TableCell className="text-right text-sm font-medium">

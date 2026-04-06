@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowUpRight, ArrowDownRight, Shield, DollarSign } from "lucide-react";
 import { CHAINS } from "@/lib/chains/registry";
+import { getCoinLogo } from "@/lib/stablecoins/logos";
 import { DetailRowSkeleton, PageHeaderSkeleton, MetricCardSkeleton } from "@/components/skeleton";
 import { SYMBOL_TO_ISSUER, getIssuerBySlug } from "@/lib/stablecoins/issuers";
 
@@ -133,6 +134,7 @@ export default function CoinDetailPage() {
           <span className="text-muted-foreground/40">/</span>
         </div>
         <div className="flex items-center gap-3">
+          {getCoinLogo(symbol) && <img src={getCoinLogo(symbol)} alt={symbol} className="h-8 w-8 rounded-full" />}
           <h1 className="text-2xl font-bold tracking-tight">{coin.symbol}</h1>
           <span className="text-lg text-muted-foreground">{coin.name}</span>
           <Badge variant="outline" className={`text-xs ${mechColors[coin.mechanism] || "border-border/50"}`}>

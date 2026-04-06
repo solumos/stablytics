@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Skeleton } from "@/components/skeleton";
+import { getCoinLogo } from "@/lib/stablecoins/logos";
 
 interface StablecoinData {
   symbol: string;
@@ -112,8 +113,13 @@ export default function CoinsPage() {
                     >
                       <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
                       <TableCell>
-                        <a href={`/coins/${coin.symbol.toLowerCase()}`} className="text-sm font-medium text-emerald-400 hover:underline">{coin.symbol}</a>
-                        <span className="ml-2 text-xs text-muted-foreground">{coin.name}</span>
+                        <div className="flex items-center gap-2">
+                          {getCoinLogo(coin.symbol) && <img src={getCoinLogo(coin.symbol)} alt="" className="h-5 w-5 rounded-full" />}
+                          <div>
+                            <a href={`/coins/${coin.symbol.toLowerCase()}`} className="text-sm font-medium text-emerald-400 hover:underline">{coin.symbol}</a>
+                            <span className="ml-2 text-xs text-muted-foreground">{coin.name}</span>
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell className="text-right text-sm font-medium">{fmtUsd(coin.supply)}</TableCell>
                       <TableCell className="text-right text-xs text-muted-foreground">
