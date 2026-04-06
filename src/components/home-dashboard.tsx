@@ -136,11 +136,11 @@ export function HomeDashboard({ overview, chart }: Props) {
         <Card className="border-border/40 bg-card/50">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Non-USD Stablecoins</span>
+              <span className="text-xs font-medium text-muted-foreground">Non-USD & Yield-Bearing</span>
               <Globe className="h-4 w-4 text-muted-foreground/60" />
             </div>
-            <p className="mt-2 text-2xl font-bold">{fmtUsd(totalNonUsd)}</p>
-            <span className="text-xs text-muted-foreground">{overview.nonUsdGroups.length} currencies</span>
+            <p className="mt-2 text-2xl font-bold">{fmtUsd(totalNonUsd + overview.yieldBearingTotal)}</p>
+            <span className="text-xs text-muted-foreground">{overview.nonUsdGroups.length} currencies + yield tokens</span>
           </CardContent>
         </Card>
       </div>
