@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import type { GlobalMetrics } from "./metrics";
 
 const CACHE_KEY = "global_metrics";
@@ -6,6 +6,9 @@ const CACHE_KEY = "global_metrics";
 /** Read cached metrics from Supabase (instant, no RPC calls). */
 export async function getCachedMetrics(): Promise<GlobalMetrics | null> {
   try {
+    const supabase = getSupabase();
+    if (!supabase) return null;
+
     const { data, error } = await supabase
       .from("metrics_cache")
       .select("data, updated_at")
@@ -15,7 +18,6 @@ export async function getCachedMetrics(): Promise<GlobalMetrics | null> {
     if (error || !data?.data) return null;
 
     const metrics = data.data as GlobalMetrics;
-    // Check staleness — if older than 2 hours, return null to trigger refresh
     const updatedAt = new Date(data.updated_at).getTime();
     const age = Date.now() - updatedAt;
     if (age > 2 * 60 * 60 * 1000) return null;
@@ -29,6 +31,9 @@ export async function getCachedMetrics(): Promise<GlobalMetrics | null> {
 /** Write computed metrics to Supabase cache. */
 export async function setCachedMetrics(metrics: GlobalMetrics): Promise<void> {
   try {
+    const supabase = getSupabase();
+    if (!supabase) return;
+
     await supabase
       .from("metrics_cache")
       .upsert({
