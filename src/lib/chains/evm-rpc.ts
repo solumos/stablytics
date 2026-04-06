@@ -378,6 +378,7 @@ export async function getAssetTransfers(
   params: {
     fromAddress?: string;
     toAddress?: string;
+    contractAddresses?: string[];
     category?: string[];
     maxCount?: number;
     order?: "asc" | "desc";
@@ -397,6 +398,7 @@ export async function getAssetTransfers(
   };
   if (params.fromAddress) reqParams.fromAddress = params.fromAddress;
   if (params.toAddress) reqParams.toAddress = params.toAddress;
+  if (params.contractAddresses) reqParams.contractAddresses = params.contractAddresses;
 
   const result = await rpcCall<{
     transfers: AssetTransfer[];

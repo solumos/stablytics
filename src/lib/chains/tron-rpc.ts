@@ -201,6 +201,53 @@ export async function getAccountTransactions(
   return (data.data || []).map((t) => parseTx(t, 0));
 }
 
+export interface TronTrc20Transfer {
+  txId: string;
+  from: string;
+  to: string;
+  value: string;
+  tokenSymbol: string;
+  tokenAddress: string;
+  tokenDecimals: number;
+  timestamp: number;
+}
+
+export async function getAccountTrc20Transfers(
+  address: string,
+  contractAddress?: string,
+  limit = 25
+): Promise<TronTrc20Transfer[]> {
+  let path = `/v1/accounts/${address}/transactions/trc20?limit=${limit}`;
+  if (contractAddress) path += `&contract_address=${contractAddress}`;
+
+  interface Trc20Response {
+    data: {
+      transaction_id: string;
+      from: string;
+      to: string;
+      value: string;
+      token_info: {
+        symbol: string;
+        address: string;
+        decimals: number;
+      };
+      block_timestamp: number;
+    }[];
+  }
+
+  const data = await tronGet<Trc20Response>(path);
+  return (data.data || []).map((t) => ({
+    txId: t.transaction_id,
+    from: t.from,
+    to: t.to,
+    value: t.value,
+    tokenSymbol: t.token_info?.symbol || "?",
+    tokenAddress: t.token_info?.address || "",
+    tokenDecimals: t.token_info?.decimals || 6,
+    timestamp: Math.floor((t.block_timestamp || 0) / 1000),
+  }));
+}
+
 export async function getTransactionById(
   txId: string
 ): Promise<TronTransaction | null> {

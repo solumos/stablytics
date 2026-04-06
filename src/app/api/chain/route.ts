@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getChain } from "@/lib/chains/registry";
-import { STABLECOIN_ADDRESSES } from "@/lib/stablecoins/addresses";
+import { STABLECOIN_ADDRESSES, getAllStablecoinAddresses } from "@/lib/stablecoins/addresses";
 import { SYMBOL_TO_ISSUER } from "@/lib/stablecoins/issuers";
 import { getTokenMetadata } from "@/lib/chains/evm-rpc";
 import {
@@ -216,33 +216,55 @@ export async function GET(request: Request) {
           { status: 400 }
         );
       }
-      const direction = searchParams.get("direction") || "from"; // "from" | "to" | "both"
+      const direction = searchParams.get("direction") || "from";
+      const filter = searchParams.get("filter"); // "stablecoins" to filter to known stablecoin contracts
+
+      // Alchemy contractAddresses only supports one contract per call.
+      // For stablecoin filtering, we fetch top 3 stablecoins in parallel and merge.
+      const stablecoinAddrs = filter === "stablecoins"
+        ? getAllStablecoinAddresses(chainSlug).slice(0, 3) // top 3 to limit API calls
+        : [];
 
       const result = await cached(
-        `chain:${chainSlug}:transfers:${address.toLowerCase()}:${direction}`,
+        `chain:${chainSlug}:transfers:${address.toLowerCase()}:${direction}:${filter || "all"}`,
         async () => {
+          if (stablecoinAddrs.length > 0) {
+            // Parallel fetch per stablecoin contract
+            const calls = stablecoinAddrs.flatMap((contractAddr) => {
+              if (direction === "both") {
+                return [
+                  getAssetTransfers(chain, { fromAddress: address, contractAddresses: [contractAddr], category: ["erc20"], maxCount: 10 }),
+                  getAssetTransfers(chain, { toAddress: address, contractAddresses: [contractAddr], category: ["erc20"], maxCount: 10 }),
+                ];
+              }
+              return [
+                getAssetTransfers(chain, {
+                  ...(direction === "to" ? { toAddress: address } : { fromAddress: address }),
+                  contractAddresses: [contractAddr],
+                  category: ["erc20"],
+                  maxCount: 15,
+                }),
+              ];
+            });
+            const results = await Promise.all(calls);
+            const all = results.flatMap((r) => r.transfers)
+              .sort((a, b) => parseInt(b.blockNum, 16) - parseInt(a.blockNum, 16));
+            return { transfers: all.slice(0, 50) };
+          }
+
           if (direction === "both") {
             const [sent, received] = await Promise.all([
-              getAssetTransfers(chain, {
-                fromAddress: address,
-                maxCount: 25,
-              }),
-              getAssetTransfers(chain, {
-                toAddress: address,
-                maxCount: 25,
-              }),
+              getAssetTransfers(chain, { fromAddress: address, maxCount: 25 }),
+              getAssetTransfers(chain, { toAddress: address, maxCount: 25 }),
             ]);
-            // Merge and sort by block desc
             const all = [...sent.transfers, ...received.transfers].sort(
-              (a, b) =>
-                parseInt(b.blockNum, 16) - parseInt(a.blockNum, 16)
+              (a, b) => parseInt(b.blockNum, 16) - parseInt(a.blockNum, 16)
             );
             return { transfers: all.slice(0, 50) };
           }
-          const params =
-            direction === "to"
-              ? { toAddress: address, maxCount: 50 }
-              : { fromAddress: address, maxCount: 50 };
+          const params: Record<string, unknown> = { maxCount: 50 };
+          if (direction === "to") (params as any).toAddress = address;
+          else (params as any).fromAddress = address;
           return getAssetTransfers(chain, params);
         }
       );

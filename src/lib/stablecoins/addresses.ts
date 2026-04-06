@@ -57,6 +57,19 @@ export const STABLECOIN_ADDRESSES: Record<string, Record<string, string>> = {
     BUSD: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
     FDUSD: "0xc5f0f7b66764F6ec8C8Dff7BA683102295E16409",
   },
+  // Non-EVM chains
+  solana: {
+    USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    USDT: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+    PYUSD: "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+    USDS: "USDSwr9ApdHk5bvJKMjXLj5NNhQ1oAEm6Z9RrGHxGEk",
+  },
+  tron: {
+    USDT: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+    USDC: "TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8",
+    TUSD: "TUpMhErZL2fhh4sVNULAbNKLokS4GjC1F4",
+    USDD: "TPYmHEhy5n8TCEfYGqW2rPxsghSfzghPDn",
+  },
 };
 
 export function getStablecoinAddress(
@@ -65,7 +78,6 @@ export function getStablecoinAddress(
 ): string | undefined {
   const chain = STABLECOIN_ADDRESSES[chainSlug];
   if (!chain) return undefined;
-  // Try exact match, then case-insensitive
   return (
     chain[symbol] ||
     chain[symbol.toUpperCase()] ||
@@ -73,4 +85,11 @@ export function getStablecoinAddress(
       ([k]) => k.toLowerCase() === symbol.toLowerCase()
     )?.[1]
   );
+}
+
+/** Returns all stablecoin contract addresses for a chain as a flat array. */
+export function getAllStablecoinAddresses(chainSlug: string): string[] {
+  const chain = STABLECOIN_ADDRESSES[chainSlug];
+  if (!chain) return [];
+  return Object.values(chain);
 }

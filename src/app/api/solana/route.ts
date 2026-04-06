@@ -6,8 +6,10 @@ import {
   getAccountInfo,
   getTokenAccountsByOwner,
   getSignaturesForAddress,
+  getStablecoinSignatures,
   getBalance,
 } from "@/lib/chains/solana-rpc";
+import { getAllStablecoinAddresses } from "@/lib/stablecoins/addresses";
 import { cached } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
@@ -82,6 +84,30 @@ export async function GET(request: Request) {
         getSignaturesForAddress(address, 50)
       );
       return NextResponse.json({ signatures: sigs });
+    }
+
+    if (action === "stablecoin-transfers") {
+      const mint = searchParams.get("mint");
+      const result = await cached(
+        `solana:stable-tx:${mint || "all"}`,
+        async () => {
+          if (mint) {
+            // Single mint
+            return { signatures: await getStablecoinSignatures(mint, 50) };
+          }
+          // All stablecoin mints — fetch top 2 and merge
+          const mints = getAllStablecoinAddresses("solana").slice(0, 2);
+          const all = await Promise.all(
+            mints.map((m) => getStablecoinSignatures(m, 25))
+          );
+          const merged = all
+            .flat()
+            .sort((a, b) => (b.blockTime || 0) - (a.blockTime || 0))
+            .slice(0, 50);
+          return { signatures: merged };
+        }
+      );
+      return NextResponse.json(result);
     }
 
     return NextResponse.json({ error: "unknown action" }, { status: 400 });

@@ -274,6 +274,14 @@ export async function getSignaturesForAddress(
   ]);
 }
 
+/** Get recent signatures for a specific token mint — returns transactions involving that token. */
+export async function getStablecoinSignatures(
+  mintAddress: string,
+  limit = 25
+): Promise<SolanaSignature[]> {
+  return getSignaturesForAddress(mintAddress, limit);
+}
+
 export async function getBalance(address: string): Promise<number> {
   const result = await rpc<{ value: number }>("getBalance", [address]);
   return result.value;

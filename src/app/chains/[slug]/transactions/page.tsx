@@ -19,18 +19,14 @@ export default function ChainTransactionsPage() {
   const fetchTxns = () => {
     setLoading(true);
     if (isSolana) {
-      fetch("/api/solana?action=blocks&count=5")
+      fetch("/api/solana?action=stablecoin-transfers")
         .then((r) => r.json())
         .then((data) => {
-          const all: typeof txns = [];
-          for (const block of data.blocks || []) {
-            for (const sig of block.signatures || []) {
-              all.push({ hash: sig, blockNumber: block.slot, timestamp: block.blockTime || 0 });
-              if (all.length >= 50) break;
-            }
-            if (all.length >= 50) break;
-          }
-          setTxns(all);
+          setTxns((data.signatures || []).map((s: any) => ({
+            hash: s.signature,
+            blockNumber: s.slot,
+            timestamp: s.blockTime || 0,
+          })));
           setLoading(false);
         })
         .catch(() => setLoading(false));
@@ -90,7 +86,7 @@ export default function ChainTransactionsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">{chain?.name} Transactions</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{chain?.name} Stablecoin Transfers</h1>
       </div>
       <Card className="border-border/40 bg-card/50">
         <CardHeader className="pb-3">

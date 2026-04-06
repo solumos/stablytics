@@ -325,9 +325,12 @@ export default function ChainAddressPage() {
         })
         .catch(() => setLoading(false));
     } else if (slug === "tron") {
-      fetch(`/api/tron?action=address&address=${address}`)
-        .then((r) => r.json())
-        .then((d) => {
+      // Fetch account info + TRC20 stablecoin transfers
+      Promise.all([
+        fetch(`/api/tron?action=address&address=${address}`).then((r) => r.json()),
+        fetch(`/api/tron?action=trc20-transfers&address=${address}`).then((r) => r.json()),
+      ])
+        .then(([d, trc20Data]) => {
           if (d.error) { setLoading(false); return; }
           const acct = d.account;
           setData({
@@ -346,14 +349,16 @@ export default function ChainAddressPage() {
             stablecoinInfo: null,
             tokenMeta: null,
           });
-          setTransfers((d.transactions || []).map((t: any) => ({
-            blockNum: String(t.blockNumber || 0),
-            hash: t.txID,
-            from: t.from || address,
-            to: t.to || "",
-            value: t.amount || null,
-            asset: t.type === "TransferContract" ? "TRX" : t.type,
-            category: "external",
+          // Use TRC20 transfers (stablecoin-specific) instead of general txns
+          const trc20Transfers = trc20Data.transfers || [];
+          setTransfers(trc20Transfers.map((t: any) => ({
+            blockNum: "0",
+            hash: t.txId,
+            from: t.from,
+            to: t.to,
+            value: t.tokenDecimals ? Number(t.value) / 10 ** t.tokenDecimals : null,
+            asset: t.tokenSymbol || "TRC20",
+            category: "erc20",
           })));
           setTransfersLoading(false);
           setLoading(false);
@@ -446,7 +451,7 @@ export default function ChainAddressPage() {
         })
         .catch(() => setLoading(false));
 
-      fetch(`/api/chain?chain=${slug}&action=transfers&address=${address}&direction=both`)
+      fetch(`/api/chain?chain=${slug}&action=transfers&address=${address}&direction=both&filter=stablecoins`)
         .then((r) => r.json())
         .then((d) => { if (d.transfers) setTransfers(d.transfers); setTransfersLoading(false); })
         .catch(() => setTransfersLoading(false));

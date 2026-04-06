@@ -23,7 +23,7 @@ export default function ChainExplorerLayout({
       ? [
           { href: `${base}/performance`, label: "Performance" },
           { href: `${base}/blocks`, label: slug === "solana" ? "Slots" : slug === "sui" ? "Checkpoints" : slug === "ton" ? "Masterchain" : "Blocks" },
-          ...(slug === "ton" ? [] : [{ href: `${base}/transactions`, label: "Transactions" }]),
+          ...(slug === "ton" ? [] : [{ href: `${base}/transactions`, label: "Transfers" }]),
           ...(slug === "tempo" ? [{ href: `${base}/tokens`, label: "Tokens" }] : []),
         ]
       : []),

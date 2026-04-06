@@ -122,19 +122,14 @@ export async function GET(request: Request) {
       }
 
       const result = await cached(
-        `chain-coin:${chainSlug}:${symbol}:transfers`,
+        `chain-coin:${chainSlug}:${symbol}:transfers:v2`,
         async () => {
           const data = await getAssetTransfers(chain, {
             category: ["erc20"],
+            contractAddresses: [contractAddress],
             maxCount: 50,
           });
-          // Filter to just this token
-          const filtered = data.transfers.filter(
-            (t) =>
-              t.rawContract?.address?.toLowerCase() ===
-              contractAddress.toLowerCase()
-          );
-          return { transfers: filtered.slice(0, 50) };
+          return { transfers: data.transfers };
         }
       );
 

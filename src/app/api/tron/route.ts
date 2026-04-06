@@ -6,6 +6,7 @@ import {
   getAccount,
   getAccountTransactions,
   getTransactionById,
+  getAccountTrc20Transfers,
 } from "@/lib/chains/tron-rpc";
 import { cached } from "@/lib/cache";
 
@@ -98,6 +99,19 @@ export async function GET(request: Request) {
         return { account, transactions: txns };
       });
       return NextResponse.json(result);
+    }
+
+    if (action === "trc20-transfers") {
+      const address = searchParams.get("address");
+      const contract = searchParams.get("contract") || undefined;
+      if (!address) {
+        return NextResponse.json({ error: "address required" }, { status: 400 });
+      }
+      const transfers = await cached(
+        `tron:trc20:${address}:${contract || "all"}`,
+        () => getAccountTrc20Transfers(address, contract, 50)
+      );
+      return NextResponse.json({ transfers });
     }
 
     return NextResponse.json({ error: "unknown action" }, { status: 400 });
