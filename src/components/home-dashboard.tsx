@@ -289,10 +289,11 @@ export function HomeDashboard({ overview, chart }: Props) {
       {overview.nonUsdGroups.length > 0 && (
         <Card className="border-border/40 bg-card/50 mb-8">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Non-USD Stablecoins by Currency</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Non-USD & Yield-Bearing Tokens</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Currency groups */}
               {overview.nonUsdGroups.map((group) => (
                 <div key={group.currency} className="rounded-lg border border-border/30 p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -316,47 +317,32 @@ export function HomeDashboard({ overview, chart }: Props) {
                   </div>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* ── Yield-bearing tokens ── */}
-      {overview.yieldBearingTokens.length > 0 && (
-        <Card className="border-border/40 bg-card/50 mb-8">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Yield-Bearing Tokens</CardTitle>
-                <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-400 border-amber-500/20">
-                  {fmtUsd(overview.yieldBearingTotal)} total
-                </Badge>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Tokenized treasuries, money market funds, and yield-bearing USD tokens. Not counted in stablecoin supply totals.
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {overview.yieldBearingTokens.map((token, i) => (
-              <a
-                key={`${token.symbol}-${i}`}
-                href={`/coins/${token.symbol.toLowerCase()}`}
-                className="flex items-center justify-between rounded-lg border border-border/30 px-4 py-2.5 transition-colors hover:bg-muted/20"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-muted-foreground w-5">{i + 1}</span>
-                  <div>
-                    <span className="text-sm font-medium">{token.symbol}</span>
-                    <span className="ml-2 text-xs text-muted-foreground">{token.name}</span>
+              {/* Yield-bearing as another card in the same grid */}
+              {overview.yieldBearingTokens.length > 0 && (
+                <div className="rounded-lg border border-amber-500/20 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full bg-amber-400" />
+                      <span className="text-sm font-semibold">Yield-Bearing</span>
+                      <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-400 border-amber-500/20">Tokens</Badge>
+                    </div>
+                    <span className="text-sm font-bold">{fmtUsd(overview.yieldBearingTotal)}</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {overview.yieldBearingTokens.slice(0, 4).map((token) => (
+                      <div key={token.symbol} className="flex items-center justify-between text-xs">
+                        <a href={`/coins/${token.symbol.toLowerCase()}`} className="text-emerald-400 hover:underline">{token.symbol}</a>
+                        <span className="text-muted-foreground">{fmtUsd(token.supply)}</span>
+                      </div>
+                    ))}
+                    {overview.yieldBearingTokens.length > 4 && (
+                      <span className="text-xs text-muted-foreground">+{overview.yieldBearingTokens.length - 4} more</span>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Change value={token.change7d} />
-                  <span className="text-sm font-bold">{fmtUsd(token.supply)}</span>
-                </div>
-              </a>
-            ))}
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
