@@ -6,12 +6,10 @@ export function Footer() {
           Stablytics — Stablecoin Analytics
         </span>
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <a
-            href="/tempo"
-            className="transition-colors hover:text-foreground"
-          >
-            Tempo
-          </a>
+          <a href="/chains" className="transition-colors hover:text-foreground">Chains</a>
+          <a href="/coins" className="transition-colors hover:text-foreground">Coins</a>
+          <a href="/issuers" className="transition-colors hover:text-foreground">Issuers</a>
+          <a href="/protocols" className="transition-colors hover:text-foreground">Protocols</a>
         </div>
       </div>
     </footer>
