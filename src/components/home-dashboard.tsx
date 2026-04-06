@@ -21,6 +21,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ClientOnlyChart } from "@/components/client-only-chart";
+import { getCoinLogo } from "@/lib/stablecoins/logos";
 import type {
   StablecoinOverview,
   ChainChartData,
@@ -291,10 +292,12 @@ export function HomeDashboard({ overview, chart, metrics }: Props) {
           <CardContent className="space-y-3">
             {overview.topStablecoins.slice(0, 5).map((coin, i) => {
               const pct = (coin.supply / overview.totalGlobalSupply) * 100;
+              const logo = getCoinLogo(coin.symbol);
               return (
                 <a key={coin.symbol} href={`/coins/${coin.symbol.toLowerCase()}`} className="flex items-center justify-between rounded-lg border border-border/30 px-3 py-2.5 transition-colors hover:bg-muted/20">
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-bold text-muted-foreground w-4">{i + 1}</span>
+                    {logo && <img src={logo} alt={coin.symbol} className="h-5 w-5 rounded-full" />}
                     <div>
                       <span className="text-sm font-medium">{coin.symbol}</span>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -316,10 +319,13 @@ export function HomeDashboard({ overview, chart, metrics }: Props) {
             <CardTitle className="text-sm font-medium text-muted-foreground">Top Non-USD Stablecoins</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {overview.nonUsdGroups.flatMap((g) => g.stablecoins).sort((a, b) => b.supply - a.supply).slice(0, 5).map((coin, i) => (
+            {overview.nonUsdGroups.flatMap((g) => g.stablecoins).sort((a, b) => b.supply - a.supply).slice(0, 5).map((coin, i) => {
+              const logo = getCoinLogo(coin.symbol);
+              return (
               <a key={coin.symbol} href={`/coins/${coin.symbol.toLowerCase()}`} className="flex items-center justify-between rounded-lg border border-border/30 px-3 py-2.5 transition-colors hover:bg-muted/20">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-bold text-muted-foreground w-4">{i + 1}</span>
+                  {logo && <img src={logo} alt={coin.symbol} className="h-5 w-5 rounded-full" />}
                   <div>
                     <span className="text-sm font-medium">{coin.symbol}</span>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -332,7 +338,8 @@ export function HomeDashboard({ overview, chart, metrics }: Props) {
                 </div>
                 <span className="text-sm font-bold">{fmtUsd(coin.supply)}</span>
               </a>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       </div>
@@ -359,7 +366,10 @@ export function HomeDashboard({ overview, chart, metrics }: Props) {
                   <div className="space-y-1.5">
                     {group.stablecoins.slice(0, 4).map((coin) => (
                       <div key={coin.symbol} className="flex items-center justify-between text-xs">
-                        <a href={`/coins/${coin.symbol.toLowerCase()}`} className="text-emerald-400 hover:underline">{coin.symbol}</a>
+                        <a href={`/coins/${coin.symbol.toLowerCase()}`} className="inline-flex items-center gap-1 text-emerald-400 hover:underline">
+                          {getCoinLogo(coin.symbol) && <img src={getCoinLogo(coin.symbol)} alt="" className="h-3.5 w-3.5 rounded-full" />}
+                          {coin.symbol}
+                        </a>
                         <span className="text-muted-foreground">{fmtUsd(coin.supply)}</span>
                       </div>
                     ))}
