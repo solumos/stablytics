@@ -18,11 +18,14 @@ export default function ChainPerformancePage() {
   const slug = params.slug as string;
   const chain = getChain(slug);
 
+  const isSolana = slug === "solana";
+
   const [stats, setStats] = useState<{
     latestBlock: number;
     avgBlockTime: number;
     avgTps: number;
     gasPrice: string;
+    nonVoteTps?: number;
   } | null>(null);
   const [blocks, setBlocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,19 +35,48 @@ export default function ChainPerformancePage() {
       setLoading(false);
       return;
     }
-    Promise.all([
-      fetch(`/api/chain?chain=${slug}&action=stats`).then((r) => r.json()),
-      fetch(`/api/chain?chain=${slug}&action=blocks&count=8`).then((r) =>
-        r.json()
-      ),
-    ])
-      .then(([s, b]) => {
-        if (s.latestBlock) setStats(s);
-        if (b.blocks) setBlocks(b.blocks);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [slug, chain?.explorerEnabled]);
+
+    if (isSolana) {
+      Promise.all([
+        fetch("/api/solana?action=stats").then((r) => r.json()),
+        fetch("/api/solana?action=blocks&count=8").then((r) => r.json()),
+      ])
+        .then(([s, b]) => {
+          if (s.latestSlot) setStats({
+            latestBlock: s.latestSlot,
+            avgBlockTime: s.avgSlotTime,
+            avgTps: s.avgTps,
+            gasPrice: "0",
+            nonVoteTps: s.nonVoteTps,
+          });
+          if (b.blocks) setBlocks(b.blocks.map((bl: any) => ({
+            ...bl,
+            number: bl.slot,
+            timestamp: bl.blockTime,
+            txCount: bl.txCount,
+            hash: bl.blockhash,
+            miner: "",
+            gasUsed: "0",
+            gasLimit: "1",
+            size: 0,
+            transactions: bl.signatures || [],
+          })));
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else {
+      Promise.all([
+        fetch(`/api/chain?chain=${slug}&action=stats`).then((r) => r.json()),
+        fetch(`/api/chain?chain=${slug}&action=blocks&count=8`).then((r) => r.json()),
+      ])
+        .then(([s, b]) => {
+          if (s.latestBlock) setStats(s);
+          if (b.blocks) setBlocks(b.blocks);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
+  }, [slug, chain?.explorerEnabled, isSolana]);
 
   if (!chain) return notFound();
 

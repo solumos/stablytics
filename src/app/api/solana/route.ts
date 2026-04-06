@@ -1,0 +1,94 @@
+import { NextResponse } from "next/server";
+import {
+  getLatestSlot,
+  getBlockRange,
+  getPerformance,
+  getAccountInfo,
+  getTokenAccountsByOwner,
+  getSignaturesForAddress,
+  getBalance,
+} from "@/lib/chains/solana-rpc";
+import { cached } from "@/lib/cache";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get("action") || "stats";
+
+    if (action === "stats") {
+      const result = await cached("solana:stats", async () => {
+        const [slot, perf] = await Promise.all([
+          getLatestSlot(),
+          getPerformance(),
+        ]);
+        return {
+          latestSlot: slot,
+          avgTps: perf.avgTps,
+          nonVoteTps: perf.nonVoteTps,
+          avgSlotTime: perf.avgSlotTime,
+        };
+      });
+      return NextResponse.json(result);
+    }
+
+    if (action === "blocks") {
+      const count = Math.min(parseInt(searchParams.get("count") || "10"), 20);
+      const beforeStr = searchParams.get("before");
+
+      const result = await cached(
+        `solana:blocks:${count}:${beforeStr || "latest"}`,
+        async () => {
+          const latest = beforeStr
+            ? parseInt(beforeStr) - 1
+            : await getLatestSlot();
+          const blocks = await getBlockRange(latest, count);
+          return { latestSlot: await getLatestSlot(), blocks };
+        }
+      );
+      return NextResponse.json(result);
+    }
+
+    if (action === "address") {
+      const address = searchParams.get("address");
+      if (!address) {
+        return NextResponse.json(
+          { error: "address required" },
+          { status: 400 }
+        );
+      }
+
+      const result = await cached(`solana:addr:${address}`, async () => {
+        const [account, tokenBalances, signatures] = await Promise.all([
+          getAccountInfo(address),
+          getTokenAccountsByOwner(address).catch(() => []),
+          getSignaturesForAddress(address, 25).catch(() => []),
+        ]);
+        return { account, tokenBalances, signatures };
+      });
+      return NextResponse.json(result);
+    }
+
+    if (action === "signatures") {
+      const address = searchParams.get("address");
+      if (!address) {
+        return NextResponse.json(
+          { error: "address required" },
+          { status: 400 }
+        );
+      }
+      const sigs = await cached(`solana:sigs:${address}`, () =>
+        getSignaturesForAddress(address, 50)
+      );
+      return NextResponse.json({ signatures: sigs });
+    }
+
+    return NextResponse.json({ error: "unknown action" }, { status: 400 });
+  } catch (e) {
+    return NextResponse.json(
+      { error: (e as Error).message },
+      { status: 500 }
+    );
+  }
+}

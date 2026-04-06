@@ -204,8 +204,8 @@ export const CHAINS: ChainConfig[] = [
     slug: "solana",
     name: "Solana",
     chainId: -1,
-    rpcUrl: "",
-    explorerEnabled: false,
+    rpcUrl: "solana", // handled by dedicated solana-rpc module
+    explorerEnabled: true,
     color: "#9945FF",
     nativeSymbol: "SOL",
     nativeDecimals: 9,

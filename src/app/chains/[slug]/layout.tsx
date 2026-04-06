@@ -22,7 +22,7 @@ export default function ChainExplorerLayout({
     ...(chain.explorerEnabled
       ? [
           { href: `${base}/performance`, label: "Performance" },
-          { href: `${base}/blocks`, label: "Blocks" },
+          { href: `${base}/blocks`, label: slug === "solana" ? "Slots" : "Blocks" },
           { href: `${base}/transactions`, label: "Transactions" },
         ]
       : []),

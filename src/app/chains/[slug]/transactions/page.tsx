@@ -12,27 +12,46 @@ import { getChain } from "@/lib/chains/registry";
 export default function ChainTransactionsPage() {
   const { slug } = useParams() as { slug: string };
   const chain = getChain(slug);
+  const isSolana = slug === "solana";
   const [txns, setTxns] = useState<{ hash: string; blockNumber: number; timestamp: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTxns = () => {
     setLoading(true);
-    fetch(`/api/chain?chain=${slug}&action=blocks&count=10`)
-      .then((r) => r.json())
-      .then((data) => {
-        const all: typeof txns = [];
-        for (const block of data.blocks || []) {
-          for (const hash of block.transactions) {
-            all.push({ hash, blockNumber: block.number, timestamp: block.timestamp });
+    if (isSolana) {
+      fetch("/api/solana?action=blocks&count=5")
+        .then((r) => r.json())
+        .then((data) => {
+          const all: typeof txns = [];
+          for (const block of data.blocks || []) {
+            for (const sig of block.signatures || []) {
+              all.push({ hash: sig, blockNumber: block.slot, timestamp: block.blockTime || 0 });
+              if (all.length >= 50) break;
+            }
+            if (all.length >= 50) break;
           }
-        }
-        setTxns(all.slice(0, 50));
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+          setTxns(all);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else {
+      fetch(`/api/chain?chain=${slug}&action=blocks&count=10`)
+        .then((r) => r.json())
+        .then((data) => {
+          const all: typeof txns = [];
+          for (const block of data.blocks || []) {
+            for (const hash of block.transactions) {
+              all.push({ hash, blockNumber: block.number, timestamp: block.timestamp });
+            }
+          }
+          setTxns(all.slice(0, 50));
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
   };
 
-  useEffect(() => { fetchTxns(); }, [slug]);
+  useEffect(() => { fetchTxns(); }, [slug, isSolana]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

@@ -231,15 +231,16 @@ function ContractView({ data }: { data: AddressData }) {
 }
 
 // ── EOA View ──
-function EoaView({ data }: { data: AddressData }) {
+function EoaView({ data, isSolana }: { data: AddressData; isSolana?: boolean }) {
+  const balanceDisplay = isSolana
+    ? `${(Number(data.balance) / 1e9).toFixed(4)} SOL`
+    : `${formatEther(BigInt(data.balance))} ${data.nativeSymbol}`;
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
       <Card className="border-border/40 bg-card/50">
         <CardContent className="p-5">
           <span className="text-xs text-muted-foreground">Balance</span>
-          <p className="mt-1 text-lg font-bold">
-            {formatEther(BigInt(data.balance))} {data.nativeSymbol}
-          </p>
+          <p className="mt-1 text-lg font-bold">{balanceDisplay}</p>
         </CardContent>
       </Card>
       <Card className="border-border/40 bg-card/50">
@@ -271,17 +272,65 @@ export default function ChainAddressPage() {
   const [loading, setLoading] = useState(true);
   const [transfersLoading, setTransfersLoading] = useState(true);
 
-  useEffect(() => {
-    fetch(`/api/chain?chain=${slug}&action=address&address=${address}`)
-      .then((r) => r.json())
-      .then((d) => { if (!d.error) setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+  const isSolana = slug === "solana";
 
-    fetch(`/api/chain?chain=${slug}&action=transfers&address=${address}&direction=both`)
-      .then((r) => r.json())
-      .then((d) => { if (d.transfers) setTransfers(d.transfers); setTransfersLoading(false); })
-      .catch(() => setTransfersLoading(false));
-  }, [slug, address]);
+  useEffect(() => {
+    if (isSolana) {
+      fetch(`/api/solana?action=address&address=${address}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.error) { setLoading(false); return; }
+          const acct = d.account;
+          const isToken = acct.isToken && acct.tokenInfo?.type === "mint";
+          setData({
+            address,
+            addressType: isToken ? "stablecoin" : "eoa",
+            balance: String(acct.lamports || 0),
+            isContract: acct.executable,
+            txCount: 0,
+            codeSize: 0,
+            nativeSymbol: "SOL",
+            tokenBalances: (d.tokenBalances || []).map((t: any) => ({
+              contractAddress: t.mint,
+              tokenBalance: t.amount,
+              symbol: undefined,
+              name: undefined,
+              decimals: t.decimals,
+              logo: undefined,
+            })),
+            stablecoinInfo: isToken ? {
+              symbol: acct.tokenInfo?.supply ? "Token" : "Unknown",
+              decimals: acct.tokenInfo?.decimals,
+            } : null,
+            tokenMeta: null,
+          });
+          // Use signatures as pseudo-transfers
+          const sigs = d.signatures || [];
+          setTransfers(sigs.map((s: any) => ({
+            blockNum: String(s.slot),
+            hash: s.signature,
+            from: address,
+            to: "",
+            value: null,
+            asset: s.err ? "Failed" : "Transaction",
+            category: "external",
+          })));
+          setTransfersLoading(false);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else {
+      fetch(`/api/chain?chain=${slug}&action=address&address=${address}`)
+        .then((r) => r.json())
+        .then((d) => { if (!d.error) setData(d); setLoading(false); })
+        .catch(() => setLoading(false));
+
+      fetch(`/api/chain?chain=${slug}&action=transfers&address=${address}&direction=both`)
+        .then((r) => r.json())
+        .then((d) => { if (d.transfers) setTransfers(d.transfers); setTransfersLoading(false); })
+        .catch(() => setTransfersLoading(false));
+    }
+  }, [slug, address, isSolana]);
 
   if (loading) {
     return (
@@ -348,7 +397,7 @@ export default function ChainAddressPage() {
         <StablecoinView data={data} slug={slug} color={color} />
       )}
       {data.addressType === "contract" && <ContractView data={data} />}
-      {data.addressType === "eoa" && <EoaView data={data} />}
+      {data.addressType === "eoa" && <EoaView data={data} isSolana={isSolana} />}
 
       {/* Token balances — show for EOAs and non-token contracts */}
       {data.addressType === "eoa" && data.tokenBalances.length > 0 && (

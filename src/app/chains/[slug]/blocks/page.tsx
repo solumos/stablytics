@@ -13,20 +13,40 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function ChainBlocksPage() {
   const { slug } = useParams() as { slug: string };
   const chain = getChain(slug);
+  const isSolana = slug === "solana";
   const [blocks, setBlocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [latestBlock, setLatestBlock] = useState(0);
 
   const fetchBlocks = useCallback((before?: number) => {
     setLoading(true);
-    const url = before
-      ? `/api/chain?chain=${slug}&action=blocks&count=25&before=${before}`
-      : `/api/chain?chain=${slug}&action=blocks&count=25`;
+    let url: string;
+    if (isSolana) {
+      url = before
+        ? `/api/solana?action=blocks&count=15&before=${before}`
+        : `/api/solana?action=blocks&count=15`;
+    } else {
+      url = before
+        ? `/api/chain?chain=${slug}&action=blocks&count=25&before=${before}`
+        : `/api/chain?chain=${slug}&action=blocks&count=25`;
+    }
     fetch(url)
       .then((r) => r.json())
-      .then((data) => { setBlocks(data.blocks || []); setLatestBlock(data.latestBlock); setLoading(false); })
+      .then((data) => {
+        if (isSolana) {
+          setLatestBlock(data.latestSlot || 0);
+          setBlocks((data.blocks || []).map((b: any) => ({
+            ...b, number: b.slot, timestamp: b.blockTime, hash: b.blockhash,
+            miner: "", gasUsed: "0", gasLimit: "1", size: 0,
+          })));
+        } else {
+          setBlocks(data.blocks || []);
+          setLatestBlock(data.latestBlock);
+        }
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
-  }, [slug]);
+  }, [slug, isSolana]);
 
   useEffect(() => { fetchBlocks(); }, [fetchBlocks]);
 
@@ -36,7 +56,7 @@ export default function ChainBlocksPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">{chain?.name} Blocks</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{chain?.name} {isSolana ? "Slots" : "Blocks"}</h1>
       </div>
       <Card className="border-border/40 bg-card/50">
         <CardHeader className="pb-3">
