@@ -52,11 +52,19 @@ export default function IssuersPage() {
     fetch("/api/stablecoins")
       .then((r) => r.json())
       .then((d) => {
-        if (!d.topStablecoins) return;
+        // Merge all categories
+        const allCoins: StablecoinData[] = [
+          ...(d.topStablecoins || []),
+          ...((d.nonUsdGroups || []) as { stablecoins: StablecoinData[] }[]).flatMap(
+            (g) => g.stablecoins
+          ),
+          ...(d.yieldBearingTokens || []),
+        ];
+        if (!allCoins.length) return;
 
         // Group by issuer using our profile data
         const map = new Map<string, Issuer>();
-        for (const coin of d.topStablecoins as StablecoinData[]) {
+        for (const coin of allCoins) {
           const issuerSlug = SYMBOL_TO_ISSUER.get(coin.symbol);
           const profile = issuerSlug
             ? ISSUERS.find((i) => i.slug === issuerSlug)

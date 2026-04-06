@@ -58,13 +58,20 @@ export default function IssuerDetailPage() {
     fetch("/api/stablecoins")
       .then((r) => r.json())
       .then((d) => {
-        if (d.topStablecoins && issuer) {
-          const issuerCoins = (d.topStablecoins as CoinData[]).filter((c) =>
-            issuer.coins.includes(c.symbol)
-          );
-          setCoins(issuerCoins);
-          setTotalSupply(issuerCoins.reduce((s, c) => s + c.supply, 0));
-        }
+        if (!issuer) return;
+        // Search across all categories: USD stablecoins, non-USD, and yield-bearing
+        const allCoins: CoinData[] = [
+          ...(d.topStablecoins || []),
+          ...((d.nonUsdGroups || []) as { stablecoins: CoinData[] }[]).flatMap(
+            (g) => g.stablecoins
+          ),
+          ...(d.yieldBearingTokens || []),
+        ];
+        const issuerCoins = allCoins.filter((c) =>
+          issuer.coins.includes(c.symbol)
+        );
+        setCoins(issuerCoins);
+        setTotalSupply(issuerCoins.reduce((s, c) => s + c.supply, 0));
         setLoading(false);
       })
       .catch(() => setLoading(false));
