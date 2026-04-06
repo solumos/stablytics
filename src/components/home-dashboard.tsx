@@ -115,20 +115,16 @@ export function HomeDashboard({ overview, chart, metrics }: Props) {
   const totalNonUsd = overview.nonUsdGroups.reduce((s, g) => s + g.totalSupply, 0);
   const [range, setRange] = useState<string>("all");
 
-  // Metrics are sampled over ~1hr. Extrapolate for the selected range.
+  // Metrics are per-hour rates. Multiply by hours for selected range.
   const selectedRange = TIME_RANGES.find((r) => r.key === range) || TIME_RANGES[6];
-  const multiplier = selectedRange.hours > 0
-    ? selectedRange.hours
-    : 8760 * 2; // "all time" ~ 2 years of stablecoin history as rough estimate
+  const hours = selectedRange.hours > 0 ? selectedRange.hours : 8760; // "all" = ~1 year
 
-  const estTxns = metrics ? Math.round(metrics.transactions * multiplier) : 0;
-  const estVolume = metrics ? metrics.volume * multiplier : 0;
-  const estSenders = metrics
-    ? Math.round(metrics.senders * Math.sqrt(multiplier)) // unique addresses grow sub-linearly
-    : 0;
-  const estReceivers = metrics
-    ? Math.round(metrics.receivers * Math.sqrt(multiplier))
-    : 0;
+  const estTxns = metrics ? Math.round(metrics.transactions * hours) : 0;
+  const estVolume = metrics ? metrics.volume * hours : 0;
+  // Unique addresses don't scale linearly — use sqrt for longer periods
+  const uniqueScale = Math.min(hours, 720); // cap at 30d worth for unique counts
+  const estSenders = metrics ? Math.round(metrics.senders * uniqueScale) : 0;
+  const estReceivers = metrics ? Math.round(metrics.receivers * uniqueScale) : 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

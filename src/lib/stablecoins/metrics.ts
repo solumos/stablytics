@@ -70,6 +70,9 @@ async function sampleEvmChain(
   let volume = 0;
   let txCount = 0;
 
+  // Max $1B per single transfer — anything higher is likely a mint/burn or internal accounting
+  const MAX_TRANSFER_USD = 1_000_000_000;
+
   for (const logs of results) {
     if (!Array.isArray(logs)) continue;
     txCount += logs.length;
@@ -77,7 +80,13 @@ async function sampleEvmChain(
       if (log.topics?.length >= 3) {
         senders.add(log.topics[1]);
         receivers.add(log.topics[2]);
-        volume += parseInt(log.data, 16) / 1e6; // assume 6 decimals for stablecoins
+        try {
+          const raw = BigInt(log.data);
+          const usd = Number(raw) / 1e6; // 6 decimals for stablecoins
+          if (usd > 0 && usd < MAX_TRANSFER_USD) {
+            volume += usd;
+          }
+        } catch {}
       }
     }
   }
@@ -234,25 +243,26 @@ export async function getStablecoinMetrics(): Promise<GlobalMetrics> {
         (c) => c.transactions > 0
       );
 
-      // Aggregate
-      const globalSenders = new Set<string>();
-      let totalTxns = 0;
-      let totalVolume = 0;
-      let totalSenders = 0;
-      let totalReceivers = 0;
+      // Normalize to per-hour rates
+      let txnsPerHour = 0;
+      let volumePerHour = 0;
+      let sendersPerHour = 0;
+      let receiversPerHour = 0;
 
       for (const c of chains) {
-        totalTxns += c.transactions;
-        totalVolume += c.volume;
-        totalSenders += c.senders;
-        totalReceivers += c.receivers;
+        const h = c.sampleHours || 1;
+        txnsPerHour += c.transactions / h;
+        volumePerHour += c.volume / h;
+        sendersPerHour += c.senders / h;
+        receiversPerHour += c.receivers / h;
       }
 
       return {
-        transactions: totalTxns,
-        volume: totalVolume,
-        senders: totalSenders,
-        receivers: totalReceivers,
+        // Store as per-hour rates for clean extrapolation
+        transactions: Math.round(txnsPerHour),
+        volume: Math.round(volumePerHour),
+        senders: Math.round(sendersPerHour),
+        receivers: Math.round(receiversPerHour),
         chains: chains.sort((a, b) => b.transactions - a.transactions),
         sampledAt: Date.now(),
       };
