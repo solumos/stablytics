@@ -102,7 +102,6 @@ const TIME_RANGES = [
   { key: "30d", label: "30D", hours: 720 },
   { key: "90d", label: "90D", hours: 2160 },
   { key: "1y", label: "1Y", hours: 8760 },
-  { key: "all", label: "All", hours: 0 },
 ] as const;
 
 interface Props {
@@ -113,11 +112,11 @@ interface Props {
 
 export function HomeDashboard({ overview, chart, metrics }: Props) {
   const totalNonUsd = overview.nonUsdGroups.reduce((s, g) => s + g.totalSupply, 0);
-  const [range, setRange] = useState<string>("all");
+  const [range, setRange] = useState<string>("1y");
 
   // Metrics are per-hour rates. Multiply by hours for selected range.
-  const selectedRange = TIME_RANGES.find((r) => r.key === range) || TIME_RANGES[6];
-  const hours = selectedRange.hours > 0 ? selectedRange.hours : 8760; // "all" = ~1 year
+  const selectedRange = TIME_RANGES.find((r) => r.key === range) || TIME_RANGES[5];
+  const hours = selectedRange.hours;
 
   const estTxns = metrics ? Math.round(metrics.transactions * hours) : 0;
   const estVolume = metrics ? metrics.volume * hours : 0;
