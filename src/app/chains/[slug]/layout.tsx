@@ -18,9 +18,14 @@ export default function ChainExplorerLayout({
 
   const base = `/chains/${slug}`;
   const subNav = [
-    { href: base, label: "Overview", exact: true },
-    { href: `${base}/blocks`, label: "Blocks" },
-    { href: `${base}/transactions`, label: "Transactions" },
+    { href: base, label: "Stablecoins", exact: true },
+    ...(chain.explorerEnabled
+      ? [
+          { href: `${base}/performance`, label: "Performance" },
+          { href: `${base}/blocks`, label: "Blocks" },
+          { href: `${base}/transactions`, label: "Transactions" },
+        ]
+      : []),
   ];
 
   return (
@@ -41,8 +46,7 @@ export default function ChainExplorerLayout({
                 {chain.explorerEnabled ? " Mainnet" : ""}
               </span>
             </div>
-            {chain.explorerEnabled &&
-              subNav.map((link) => {
+            {subNav.map((link) => {
                 const isActive = link.exact
                   ? pathname === link.href
                   : pathname.startsWith(link.href);

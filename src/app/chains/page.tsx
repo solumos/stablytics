@@ -49,6 +49,7 @@ const CHAIN_COLORS: Record<string, string> = {
   Scroll: "#FFEEDA",
   Tempo: "#34d399",
   Stable: "#3B82F6",
+  Hyperliquid: "#77F2A1", Plasma: "#FF6B35",
 };
 
 function fmtUsd(n: number): string {

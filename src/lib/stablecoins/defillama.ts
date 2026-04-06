@@ -136,6 +136,8 @@ export const TARGET_CHAINS: Record<string, string> = {
   Scroll: "Scroll",
   Tempo: "Tempo",
   Stable: "Stable",
+  "Hyperliquid L1": "Hyperliquid",
+  Plasma: "Plasma",
 };
 
 function pegUsd(v: PeggedValue | undefined): number {

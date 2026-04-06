@@ -46,6 +46,7 @@ const CHAIN_COLORS: Record<string, string> = {
   "OP Mainnet": "#FF0420", Base: "#0052FF", TON: "#0098EA", Sui: "#4DA2FF",
   Celo: "#FCFF52", "ZKsync Era": "#8B8DFC", Linea: "#61DFFF",
   Scroll: "#FFEEDA", Tempo: "#34d399", Stable: "#3B82F6",
+  Hyperliquid: "#77F2A1", Plasma: "#FF6B35",
 };
 
 function fmtUsd(n: number): string {

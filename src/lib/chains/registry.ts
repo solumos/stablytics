@@ -169,6 +169,26 @@ export const CHAINS: ChainConfig[] = [
     nativeSymbol: "ETH",
     nativeDecimals: 18,
   },
+  {
+    slug: "plasma",
+    name: "Plasma",
+    chainId: -1,
+    rpcUrl: "",
+    explorerEnabled: false,
+    color: "#FF6B35",
+    nativeSymbol: "PLASMA",
+    nativeDecimals: 18,
+  },
+  {
+    slug: "hyperliquid",
+    name: "Hyperliquid",
+    chainId: 999,
+    rpcUrl: "",
+    explorerEnabled: false,
+    color: "#77F2A1",
+    nativeSymbol: "HYPE",
+    nativeDecimals: 18,
+  },
   // Non-EVM chains — explorer not yet supported
   {
     slug: "tron",

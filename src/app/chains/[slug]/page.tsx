@@ -3,264 +3,250 @@
 import { useState, useEffect } from "react";
 import { useParams, notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getChain } from "@/lib/chains/registry";
-import { Activity, Zap, Clock, Box, ArrowRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
-  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   MetricCardSkeleton,
-  BlockCardSkeleton,
-  TxCardSkeleton,
+  Skeleton,
 } from "@/components/skeleton";
-import { timeAgo, formatBytes, shortenHash } from "@/lib/format";
+import {
+  ArrowUpRight,
+  ArrowDownRight,
+  DollarSign,
+  TrendingUp,
+  Coins,
+} from "lucide-react";
+import { getChain } from "@/lib/chains/registry";
 
-export default function ChainOverviewPage() {
+interface ChainStableData {
+  chain: string;
+  totalSupply: number;
+  change24h: number;
+  change7d: number;
+  change30d: number;
+  dominantStablecoin: string;
+  dominantStablecoinPct: number;
+  topStablecoins: { symbol: string; supply: number; pct: number }[];
+  stablecoinCount: number;
+}
+
+function fmtUsd(n: number): string {
+  if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
+  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
+  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
+  if (n >= 1e3) return `$${(n / 1e3).toFixed(1)}K`;
+  return `$${n.toFixed(0)}`;
+}
+
+function Change({ value }: { value: number }) {
+  if (value === 0) return <span className="text-muted-foreground">—</span>;
+  const pos = value > 0;
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${pos ? "text-emerald-400" : "text-red-400"}`}>
+      {pos ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+      {Math.abs(value).toFixed(2)}%
+    </span>
+  );
+}
+
+// Map DefiLlama chain names to our slugs for lookup
+const DEFILLAMA_NAME_MAP: Record<string, string> = {
+  Ethereum: "Ethereum", Tron: "Tron", BSC: "BSC", Solana: "Solana",
+  Avalanche: "Avalanche", Polygon: "Polygon", Arbitrum: "Arbitrum",
+  "OP Mainnet": "Optimism", Base: "Base", TON: "TON", Sui: "Sui",
+  Celo: "Celo", "ZKsync Era": "zkSync Era", Linea: "Linea",
+  Scroll: "Scroll", Tempo: "Tempo", Stable: "Stable",
+};
+
+export default function ChainStablecoinPage() {
   const params = useParams();
   const slug = params.slug as string;
   const chain = getChain(slug);
 
-  const [stats, setStats] = useState<{
-    latestBlock: number;
-    avgBlockTime: number;
-    avgTps: number;
-    gasPrice: string;
-  } | null>(null);
-  const [blocks, setBlocks] = useState<any[]>([]);
+  const [data, setData] = useState<ChainStableData | null>(null);
+  const [globalSupply, setGlobalSupply] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!chain?.explorerEnabled) {
-      setLoading(false);
-      return;
-    }
-    Promise.all([
-      fetch(`/api/chain?chain=${slug}&action=stats`).then((r) => r.json()),
-      fetch(`/api/chain?chain=${slug}&action=blocks&count=8`).then((r) =>
-        r.json()
-      ),
-    ])
-      .then(([s, b]) => {
-        if (s.latestBlock) setStats(s);
-        if (b.blocks) setBlocks(b.blocks);
+    fetch("/api/stablecoins")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.chains && chain) {
+          const match = d.chains.find(
+            (c: ChainStableData) => c.chain === chain.name
+          );
+          if (match) setData(match);
+          setGlobalSupply(d.totalGlobalSupply || 0);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [slug, chain?.explorerEnabled]);
+  }, [chain]);
 
   if (!chain) return notFound();
 
-  if (!chain.explorerEnabled) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold">{chain.name}</h1>
-        <p className="mt-2 text-muted-foreground">
-          Explorer for {chain.name} is coming soon. This chain uses a non-EVM
-          architecture.
-        </p>
-      </div>
-    );
-  }
-
-  // Collect txns from blocks
-  const txns: { hash: string; blockNumber: number; timestamp: number }[] = [];
-  for (const block of blocks) {
-    for (const hash of block.transactions || []) {
-      txns.push({ hash, blockNumber: block.number, timestamp: block.timestamp });
-      if (txns.length >= 6) break;
-    }
-    if (txns.length >= 6) break;
-  }
+  const color = chain.color;
+  const marketShare = data && globalSupply > 0
+    ? (data.totalSupply / globalSupply) * 100
+    : 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">
-          {chain.name} Explorer
+          Stablecoins on {chain.name}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Real-time block explorer for {chain.name}
-          {stats && (
-            <span style={{ color: chain.color }}>
-              {" "}— Block #{stats.latestBlock.toLocaleString()}
-            </span>
-          )}
+          Stablecoin supply, composition, and movement on {chain.name}
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
-        {loading ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <MetricCardSkeleton key={i} />
-          ))
-        ) : (
-          <>
-            <Card className="border-border/40 bg-card/50">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    Latest Block
-                  </span>
-                  <Activity className="h-4 w-4 text-muted-foreground/60" />
-                </div>
-                <p className="mt-3 text-2xl font-bold">
-                  {stats?.latestBlock.toLocaleString() || "—"}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-border/40 bg-card/50">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    Block Time
-                  </span>
-                  <Clock className="h-4 w-4 text-muted-foreground/60" />
-                </div>
-                <p className="mt-3 text-2xl font-bold">
-                  {stats ? `${stats.avgBlockTime.toFixed(2)}s` : "—"}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-border/40 bg-card/50">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Avg TPS</span>
-                  <Zap className="h-4 w-4 text-muted-foreground/60" />
-                </div>
-                <p className="mt-3 text-2xl font-bold">
-                  {stats ? Math.round(stats.avgTps).toLocaleString() : "—"}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-border/40 bg-card/50">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    Native Token
-                  </span>
-                </div>
-                <p className="mt-3 text-2xl font-bold">
-                  {chain.nativeSymbol}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Chain ID: {chain.chainId}
-                </p>
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </div>
+      {/* Metrics */}
+      {loading ? (
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+          {Array.from({ length: 4 }).map((_, i) => <MetricCardSkeleton key={i} />)}
+        </div>
+      ) : data ? (
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+          <Card className="border-border/40 bg-card/50">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Total Stablecoin Supply</span>
+                <DollarSign className="h-4 w-4 text-muted-foreground/60" />
+              </div>
+              <p className="mt-2 text-2xl font-bold">{fmtUsd(data.totalSupply)}</p>
+              <Change value={data.change24h} />
+              <span className="ml-1 text-xs text-muted-foreground">24h</span>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 bg-card/50">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Global Market Share</span>
+              </div>
+              <p className="mt-2 text-2xl font-bold">{marketShare.toFixed(2)}%</p>
+              <p className="text-xs text-muted-foreground">of all stablecoin supply</p>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 bg-card/50">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Supply Change</span>
+                <TrendingUp className="h-4 w-4 text-muted-foreground/60" />
+              </div>
+              <div className="mt-2 flex items-baseline gap-3">
+                <div><Change value={data.change7d} /><span className="ml-1 text-xs text-muted-foreground">7d</span></div>
+                <div><Change value={data.change30d} /><span className="ml-1 text-xs text-muted-foreground">30d</span></div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 bg-card/50">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Stablecoins</span>
+                <Coins className="h-4 w-4 text-muted-foreground/60" />
+              </div>
+              <p className="mt-2 text-2xl font-bold">{data.stablecoinCount}</p>
+              <p className="text-xs text-muted-foreground">
+                {data.dominantStablecoin} dominant ({data.dominantStablecoinPct.toFixed(0)}%)
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <p className="mb-6 text-muted-foreground">No stablecoin data available for {chain.name}.</p>
+      )}
 
-      {/* Latest blocks + txns */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card className="border-border/40 bg-card/50">
+      {/* Stablecoin breakdown table */}
+      {data && data.topStablecoins.length > 0 && (
+        <Card className="border-border/40 bg-card/50 mb-6">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Latest Blocks
-              </CardTitle>
-              <a
-                href={`/chains/${slug}/blocks`}
-                className="text-xs font-medium transition-colors hover:text-foreground"
-                style={{ color: chain.color }}
-              >
-                View all
-              </a>
-            </div>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Stablecoins on {chain.name}
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {loading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <BlockCardSkeleton key={i} />
-                ))
-              : blocks.slice(0, 6).map((block: any) => (
-                  <div
-                    key={block.number}
-                    className="flex items-center justify-between rounded-lg border border-border/30 px-3 py-2.5 transition-colors hover:bg-muted/20"
+          <CardContent className="px-0 pb-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border/40 hover:bg-transparent">
+                  <TableHead className="text-xs w-10">#</TableHead>
+                  <TableHead className="text-xs">Stablecoin</TableHead>
+                  <TableHead className="text-xs text-right">Supply</TableHead>
+                  <TableHead className="text-xs text-right">Share</TableHead>
+                  <TableHead className="text-xs"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.topStablecoins.map((coin, i) => (
+                  <TableRow
+                    key={coin.symbol}
+                    className="border-border/40 hover:bg-muted/30 cursor-pointer"
+                    onClick={() => window.location.href = `/chains/${slug}/coins/${coin.symbol.toLowerCase()}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted/50">
-                        <Box className="h-4 w-4 text-muted-foreground" />
+                    <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
+                    <TableCell>
+                      <a
+                        href={`/chains/${slug}/coins/${coin.symbol.toLowerCase()}`}
+                        className="text-sm font-medium hover:underline"
+                        style={{ color }}
+                      >
+                        {coin.symbol}
+                      </a>
+                    </TableCell>
+                    <TableCell className="text-right text-sm font-medium">{fmtUsd(coin.supply)}</TableCell>
+                    <TableCell className="text-right">
+                      {/* Visual bar */}
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="text-xs text-muted-foreground">{coin.pct.toFixed(1)}%</span>
+                        <div className="h-1.5 w-16 rounded-full bg-muted/30 overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${Math.min(coin.pct, 100)}%`, backgroundColor: color }}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <a
-                          href={`/chains/${slug}/block/${block.number}`}
-                          className="text-sm font-medium hover:underline"
-                          style={{ color: chain.color }}
-                        >
-                          {block.number.toLocaleString()}
-                        </a>
-                        <p className="text-xs text-muted-foreground">
-                          {timeAgo(block.timestamp)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm">
-                        {block.txCount}{" "}
-                        <span className="text-muted-foreground">txns</span>
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatBytes(block.size)}
-                      </p>
-                    </div>
-                  </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-xs text-muted-foreground">View →</span>
+                    </TableCell>
+                  </TableRow>
                 ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
+      )}
 
-        <Card className="border-border/40 bg-card/50">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Latest Transactions
-              </CardTitle>
-              <a
-                href={`/chains/${slug}/transactions`}
-                className="text-xs font-medium transition-colors hover:text-foreground"
-                style={{ color: chain.color }}
-              >
-                View all
-              </a>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {loading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <TxCardSkeleton key={i} />
-                ))
-              : txns.map((txn) => (
-                  <div
-                    key={txn.hash}
-                    className="flex items-center justify-between rounded-lg border border-border/30 px-3 py-2.5 transition-colors hover:bg-muted/20"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted/50">
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <a
-                          href={`/chains/${slug}/tx/${txn.hash}`}
-                          className="font-mono text-sm font-medium hover:underline"
-                          style={{ color: chain.color }}
-                        >
-                          {shortenHash(txn.hash)}
-                        </a>
-                        <p className="text-xs text-muted-foreground">
-                          {timeAgo(txn.timestamp)}
-                        </p>
-                      </div>
-                    </div>
-                    <a
-                      href={`/chains/${slug}/block/${txn.blockNumber}`}
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      Block {txn.blockNumber.toLocaleString()}
-                    </a>
-                  </div>
-                ))}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Quick links */}
+      {chain.explorerEnabled && (
+        <div className="flex flex-wrap gap-3">
+          <a
+            href={`/chains/${slug}/performance`}
+            className="rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
+          >
+            Network Performance →
+          </a>
+          <a
+            href={`/chains/${slug}/blocks`}
+            className="rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
+          >
+            Block Explorer →
+          </a>
+          <a
+            href={`/chains/${slug}/transactions`}
+            className="rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
+          >
+            Transactions →
+          </a>
+        </div>
+      )}
     </div>
   );
 }
