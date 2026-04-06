@@ -1,3 +1,9 @@
+const ALCHEMY_KEY = process.env.ALCHEMY_API_KEY || "";
+
+function alchemy(network: string): string {
+  return `https://${network}.g.alchemy.com/v2/${ALCHEMY_KEY}`;
+}
+
 export interface ChainConfig {
   slug: string;
   name: string;
@@ -20,7 +26,7 @@ export const CHAINS: ChainConfig[] = [
     slug: "ethereum",
     name: "Ethereum",
     chainId: 1,
-    rpcUrl: "https://ethereum-rpc.publicnode.com",
+    rpcUrl: alchemy("eth-mainnet"),
     explorerEnabled: true,
     color: "#627EEA",
     blockTime: 12,
@@ -31,7 +37,7 @@ export const CHAINS: ChainConfig[] = [
     slug: "base",
     name: "Base",
     chainId: 8453,
-    rpcUrl: "https://mainnet.base.org",
+    rpcUrl: alchemy("base-mainnet"),
     explorerEnabled: true,
     color: "#0052FF",
     blockTime: 2,
@@ -42,7 +48,7 @@ export const CHAINS: ChainConfig[] = [
     slug: "arbitrum",
     name: "Arbitrum",
     chainId: 42161,
-    rpcUrl: "https://arb1.arbitrum.io/rpc",
+    rpcUrl: alchemy("arb-mainnet"),
     explorerEnabled: true,
     color: "#28A0F0",
     blockTime: 0.25,
@@ -53,7 +59,7 @@ export const CHAINS: ChainConfig[] = [
     slug: "optimism",
     name: "Optimism",
     chainId: 10,
-    rpcUrl: "https://mainnet.optimism.io",
+    rpcUrl: alchemy("opt-mainnet"),
     explorerEnabled: true,
     color: "#FF0420",
     blockTime: 2,
@@ -64,7 +70,7 @@ export const CHAINS: ChainConfig[] = [
     slug: "polygon",
     name: "Polygon",
     chainId: 137,
-    rpcUrl: "https://polygon-rpc.com",
+    rpcUrl: alchemy("polygon-mainnet"),
     explorerEnabled: true,
     color: "#8247E5",
     blockTime: 2,
