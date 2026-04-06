@@ -177,9 +177,13 @@ export default function IssuerDetailPage() {
               </TableHeader>
               <TableBody>
                 {coins.map((coin) => (
-                  <TableRow key={coin.symbol} className="border-border/40 hover:bg-muted/30">
+                  <TableRow
+                    key={coin.symbol}
+                    className="border-border/40 hover:bg-muted/30 cursor-pointer"
+                    onClick={() => window.location.href = `/coins/${coin.symbol.toLowerCase()}`}
+                  >
                     <TableCell>
-                      <span className="text-sm font-medium">{coin.symbol}</span>
+                      <a href={`/coins/${coin.symbol.toLowerCase()}`} className="text-sm font-medium text-emerald-400 hover:underline">{coin.symbol}</a>
                       <span className="ml-2 text-xs text-muted-foreground">{coin.name}</span>
                     </TableCell>
                     <TableCell className="text-right text-sm font-medium">

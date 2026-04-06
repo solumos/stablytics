@@ -287,6 +287,125 @@ export async function getGasPrice(chain: ChainConfig): Promise<bigint> {
   return hexToBigInt(hex);
 }
 
+// ── Alchemy Enhanced APIs ──
+
+export interface TokenBalance {
+  contractAddress: string;
+  tokenBalance: string;
+  symbol?: string;
+  name?: string;
+  decimals?: number;
+  logo?: string;
+}
+
+export interface TokenMetadata {
+  decimals: number;
+  logo: string | null;
+  name: string;
+  symbol: string;
+}
+
+export interface AssetTransfer {
+  blockNum: string;
+  hash: string;
+  from: string;
+  to: string;
+  value: number | null;
+  asset: string | null;
+  category: string;
+  rawContract: {
+    address: string | null;
+    value: string | null;
+    decimal: string | null;
+  };
+}
+
+function isAlchemy(chain: ChainConfig): boolean {
+  return chain.rpcUrl.includes("alchemy.com");
+}
+
+export async function getTokenBalances(
+  chain: ChainConfig,
+  address: string
+): Promise<TokenBalance[]> {
+  if (!isAlchemy(chain)) return [];
+
+  const result = await rpcCall<{
+    address: string;
+    tokenBalances: { contractAddress: string; tokenBalance: string }[];
+  }>(chain.rpcUrl, "alchemy_getTokenBalances", [address, "erc20"]);
+
+  // Filter non-zero balances
+  const nonZero = result.tokenBalances.filter(
+    (t) =>
+      t.tokenBalance !==
+      "0x0000000000000000000000000000000000000000000000000000000000000000"
+  );
+
+  // Fetch metadata for top 20 tokens (avoid rate limits)
+  const top = nonZero.slice(0, 20);
+  const enriched = await Promise.all(
+    top.map(async (t) => {
+      try {
+        const meta = await getTokenMetadata(chain, t.contractAddress);
+        return {
+          ...t,
+          symbol: meta.symbol,
+          name: meta.name,
+          decimals: meta.decimals,
+          logo: meta.logo || undefined,
+        };
+      } catch {
+        return t;
+      }
+    })
+  );
+
+  return enriched;
+}
+
+export async function getTokenMetadata(
+  chain: ChainConfig,
+  tokenAddress: string
+): Promise<TokenMetadata> {
+  return rpcCall<TokenMetadata>(chain.rpcUrl, "alchemy_getTokenMetadata", [
+    tokenAddress,
+  ]);
+}
+
+export async function getAssetTransfers(
+  chain: ChainConfig,
+  params: {
+    fromAddress?: string;
+    toAddress?: string;
+    category?: string[];
+    maxCount?: number;
+    order?: "asc" | "desc";
+    fromBlock?: string;
+    toBlock?: string;
+  }
+): Promise<{ transfers: AssetTransfer[]; pageKey?: string }> {
+  if (!isAlchemy(chain)) return { transfers: [] };
+
+  const reqParams: Record<string, unknown> = {
+    fromBlock: params.fromBlock || "0x0",
+    toBlock: params.toBlock || "latest",
+    category: params.category || ["external", "erc20"],
+    order: params.order || "desc",
+    maxCount: `0x${(params.maxCount || 25).toString(16)}`,
+    withMetadata: true,
+  };
+  if (params.fromAddress) reqParams.fromAddress = params.fromAddress;
+  if (params.toAddress) reqParams.toAddress = params.toAddress;
+
+  const result = await rpcCall<{
+    transfers: AssetTransfer[];
+    pageKey?: string;
+  }>(chain.rpcUrl, "alchemy_getAssetTransfers", [reqParams]);
+
+  return result;
+}
+
 export interface NetworkStats {
   latestBlock: number;
   avgBlockTime: number;

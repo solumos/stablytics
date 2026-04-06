@@ -4,11 +4,14 @@ import {
   getNetworkStats,
   getLatestBlockNumber,
   getBlockRange,
+  getBlock,
   getTransaction,
   getTransactionReceipt,
   getBalance,
   getCode,
   getTxCount,
+  getTokenBalances,
+  getAssetTransfers,
 } from "@/lib/chains/evm-rpc";
 import { cached } from "@/lib/cache";
 
@@ -87,10 +90,7 @@ export async function GET(request: Request) {
           getTransaction(chain, hash),
           getTransactionReceipt(chain, hash),
         ]);
-        const block = await (await import("@/lib/chains/evm-rpc")).getBlock(
-          chain,
-          tx.blockNumber
-        );
+        const block = await getBlock(chain, tx.blockNumber);
         return {
           tx: {
             ...tx,
@@ -120,10 +120,11 @@ export async function GET(request: Request) {
       const result = await cached(
         `chain:${chainSlug}:addr:${address.toLowerCase()}`,
         async () => {
-          const [balance, code, txCount] = await Promise.all([
+          const [balance, code, txCount, tokenBalances] = await Promise.all([
             getBalance(chain, address),
             getCode(chain, address),
             getTxCount(chain, address),
+            getTokenBalances(chain, address),
           ]);
           return {
             address,
@@ -131,7 +132,52 @@ export async function GET(request: Request) {
             isContract: code !== "0x",
             txCount,
             nativeSymbol: chain.nativeSymbol,
+            tokenBalances: tokenBalances.map((t) => ({
+              ...t,
+              tokenBalance: t.tokenBalance,
+            })),
           };
+        }
+      );
+      return NextResponse.json(result);
+    }
+
+    if (action === "transfers") {
+      const address = searchParams.get("address");
+      if (!address) {
+        return NextResponse.json(
+          { error: "address required" },
+          { status: 400 }
+        );
+      }
+      const direction = searchParams.get("direction") || "from"; // "from" | "to" | "both"
+
+      const result = await cached(
+        `chain:${chainSlug}:transfers:${address.toLowerCase()}:${direction}`,
+        async () => {
+          if (direction === "both") {
+            const [sent, received] = await Promise.all([
+              getAssetTransfers(chain, {
+                fromAddress: address,
+                maxCount: 25,
+              }),
+              getAssetTransfers(chain, {
+                toAddress: address,
+                maxCount: 25,
+              }),
+            ]);
+            // Merge and sort by block desc
+            const all = [...sent.transfers, ...received.transfers].sort(
+              (a, b) =>
+                parseInt(b.blockNum, 16) - parseInt(a.blockNum, 16)
+            );
+            return { transfers: all.slice(0, 50) };
+          }
+          const params =
+            direction === "to"
+              ? { toAddress: address, maxCount: 50 }
+              : { fromAddress: address, maxCount: 50 };
+          return getAssetTransfers(chain, params);
         }
       );
       return NextResponse.json(result);
