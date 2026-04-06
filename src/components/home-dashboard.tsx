@@ -364,62 +364,78 @@ export function HomeDashboard() {
       {overview.nonUsdGroups.length > 0 && (
         <Card className="border-border/40 bg-card/50 mb-8">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Non-USD & Yield-Bearing Tokens</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Non-USD Tokens</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Currency groups */}
-              {overview.nonUsdGroups.map((group) => (
-                <div key={group.currency} className="rounded-lg border border-border/30 p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: CURRENCY_COLORS[group.currency] || "#6B7280" }} />
-                      <span className="text-sm font-semibold">{group.label}</span>
-                      <Badge variant="outline" className="text-[10px] border-border/50 text-muted-foreground">{group.currency}</Badge>
-                    </div>
-                    <span className="text-sm font-bold">{fmtUsd(group.totalSupply)}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {group.stablecoins.slice(0, 4).map((coin) => (
-                      <div key={coin.symbol} className="flex items-center justify-between text-xs">
-                        <a href={`/coins/${coin.symbol.toLowerCase()}`} className="inline-flex items-center gap-1 text-emerald-400 hover:underline">
-                          {getCoinLogo(coin.symbol) && <img src={getCoinLogo(coin.symbol)} alt="" className="h-3.5 w-3.5 rounded-full" />}
-                          {coin.symbol}
-                        </a>
-                        <span className="text-muted-foreground">{fmtUsd(coin.supply)}</span>
-                      </div>
-                    ))}
-                    {group.stablecoins.length > 4 && (
-                      <span className="text-xs text-muted-foreground">+{group.stablecoins.length - 4} more</span>
-                    )}
-                  </div>
-                </div>
-              ))}
+              {/* Ordered: EUR first, then Yield-Bearing, then VAR, then rest */}
+              {(() => {
+                const eurGroup = overview.nonUsdGroups.find((g) => g.currency === "EUR");
+                const varGroup = overview.nonUsdGroups.find((g) => g.currency === "VAR");
+                const rest = overview.nonUsdGroups.filter((g) => g.currency !== "EUR" && g.currency !== "VAR");
 
-              {/* Yield-bearing as another card in the same grid */}
-              {overview.yieldBearingTokens.length > 0 && (
-                <div className="rounded-lg border border-amber-500/20 p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full bg-amber-400" />
-                      <span className="text-sm font-semibold">Yield-Bearing</span>
-                      <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-400 border-amber-500/20">Tokens</Badge>
-                    </div>
-                    <span className="text-sm font-bold">{fmtUsd(overview.yieldBearingTotal)}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {overview.yieldBearingTokens.slice(0, 4).map((token) => (
-                      <div key={token.symbol} className="flex items-center justify-between text-xs">
-                        <a href={`/coins/${token.symbol.toLowerCase()}`} className="text-emerald-400 hover:underline">{token.symbol}</a>
-                        <span className="text-muted-foreground">{fmtUsd(token.supply)}</span>
+                const renderGroup = (group: typeof overview.nonUsdGroups[0]) => (
+                  <div key={group.currency} className="rounded-lg border border-border/30 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: CURRENCY_COLORS[group.currency] || "#6B7280" }} />
+                        <span className="text-sm font-semibold">{group.label}</span>
+                        <Badge variant="outline" className="text-[10px] border-border/50 text-muted-foreground">{group.currency}</Badge>
                       </div>
-                    ))}
-                    {overview.yieldBearingTokens.length > 4 && (
-                      <span className="text-xs text-muted-foreground">+{overview.yieldBearingTokens.length - 4} more</span>
-                    )}
+                      <span className="text-sm font-bold">{fmtUsd(group.totalSupply)}</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {group.stablecoins.slice(0, 4).map((coin) => (
+                        <div key={coin.symbol} className="flex items-center justify-between text-xs">
+                          <a href={`/coins/${coin.symbol.toLowerCase()}`} className="inline-flex items-center gap-1 text-emerald-400 hover:underline">
+                            {getCoinLogo(coin.symbol) && <img src={getCoinLogo(coin.symbol)} alt="" className="h-3.5 w-3.5 rounded-full" />}
+                            {coin.symbol}
+                          </a>
+                          <span className="text-muted-foreground">{fmtUsd(coin.supply)}</span>
+                        </div>
+                      ))}
+                      {group.stablecoins.length > 4 && (
+                        <span className="text-xs text-muted-foreground">+{group.stablecoins.length - 4} more</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+
+                return (
+                  <>
+                    {eurGroup && renderGroup(eurGroup)}
+
+                    {overview.yieldBearingTokens.length > 0 && (
+                      <div className="rounded-lg border border-amber-500/20 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="h-3 w-3 rounded-full bg-amber-400" />
+                            <span className="text-sm font-semibold">Yield-Bearing Tokens</span>
+                          </div>
+                          <span className="text-sm font-bold">{fmtUsd(overview.yieldBearingTotal)}</span>
+                        </div>
+                        <div className="space-y-1.5">
+                          {overview.yieldBearingTokens.slice(0, 4).map((token) => (
+                            <div key={token.symbol} className="flex items-center justify-between text-xs">
+                              <a href={`/coins/${token.symbol.toLowerCase()}`} className="inline-flex items-center gap-1 text-emerald-400 hover:underline">
+                                {getCoinLogo(token.symbol) && <img src={getCoinLogo(token.symbol)} alt="" className="h-3.5 w-3.5 rounded-full" />}
+                                {token.symbol}
+                              </a>
+                              <span className="text-muted-foreground">{fmtUsd(token.supply)}</span>
+                            </div>
+                          ))}
+                          {overview.yieldBearingTokens.length > 4 && (
+                            <span className="text-xs text-muted-foreground">+{overview.yieldBearingTokens.length - 4} more</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {varGroup && renderGroup(varGroup)}
+                    {rest.map(renderGroup)}
+                  </>
+                );
+              })()}
             </div>
           </CardContent>
         </Card>
