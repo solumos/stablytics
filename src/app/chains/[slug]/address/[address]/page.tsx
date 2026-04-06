@@ -231,10 +231,15 @@ function ContractView({ data }: { data: AddressData }) {
 }
 
 // ── EOA View ──
-function EoaView({ data, isSolana }: { data: AddressData; isSolana?: boolean }) {
-  const balanceDisplay = isSolana
-    ? `${(Number(data.balance) / 1e9).toFixed(4)} SOL`
-    : `${formatEther(BigInt(data.balance))} ${data.nativeSymbol}`;
+function EoaView({ data, chainSlug }: { data: AddressData; chainSlug?: string }) {
+  let balanceDisplay: string;
+  if (chainSlug === "solana") {
+    balanceDisplay = `${(Number(data.balance) / 1e9).toFixed(4)} SOL`;
+  } else if (chainSlug === "tron") {
+    balanceDisplay = `${(Number(data.balance) / 1e6).toFixed(2)} TRX`;
+  } else {
+    balanceDisplay = `${formatEther(BigInt(data.balance))} ${data.nativeSymbol}`;
+  }
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
       <Card className="border-border/40 bg-card/50">
@@ -319,6 +324,41 @@ export default function ChainAddressPage() {
           setLoading(false);
         })
         .catch(() => setLoading(false));
+    } else if (slug === "tron") {
+      fetch(`/api/tron?action=address&address=${address}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.error) { setLoading(false); return; }
+          const acct = d.account;
+          setData({
+            address,
+            addressType: acct.isContract ? "contract" : "eoa",
+            balance: String(Math.round(acct.balance * 1e6)),
+            isContract: acct.isContract,
+            txCount: 0,
+            codeSize: 0,
+            nativeSymbol: "TRX",
+            tokenBalances: (acct.trc20Balances || []).slice(0, 20).map((t: any) => ({
+              contractAddress: t.address,
+              tokenBalance: t.balance,
+              decimals: 6,
+            })),
+            stablecoinInfo: null,
+            tokenMeta: null,
+          });
+          setTransfers((d.transactions || []).map((t: any) => ({
+            blockNum: String(t.blockNumber || 0),
+            hash: t.txID,
+            from: t.from || address,
+            to: t.to || "",
+            value: t.amount || null,
+            asset: t.type === "TransferContract" ? "TRX" : t.type,
+            category: "external",
+          })));
+          setTransfersLoading(false);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
     } else {
       fetch(`/api/chain?chain=${slug}&action=address&address=${address}`)
         .then((r) => r.json())
@@ -397,7 +437,7 @@ export default function ChainAddressPage() {
         <StablecoinView data={data} slug={slug} color={color} />
       )}
       {data.addressType === "contract" && <ContractView data={data} />}
-      {data.addressType === "eoa" && <EoaView data={data} isSolana={isSolana} />}
+      {data.addressType === "eoa" && <EoaView data={data} chainSlug={slug} />}
 
       {/* Token balances — show for EOAs and non-token contracts */}
       {data.addressType === "eoa" && data.tokenBalances.length > 0 && (

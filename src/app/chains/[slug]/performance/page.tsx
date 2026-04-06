@@ -64,6 +64,32 @@ export default function ChainPerformancePage() {
           setLoading(false);
         })
         .catch(() => setLoading(false));
+    } else if (slug === "tron") {
+      Promise.all([
+        fetch("/api/tron?action=stats").then((r) => r.json()),
+        fetch("/api/tron?action=blocks&count=8").then((r) => r.json()),
+      ])
+        .then(([s, b]) => {
+          if (s.latestBlock) setStats({
+            latestBlock: s.latestBlock,
+            avgBlockTime: s.avgBlockTime,
+            avgTps: s.avgTps,
+            gasPrice: "0",
+          });
+          if (b.blocks) setBlocks(b.blocks.map((bl: any) => ({
+            number: bl.number,
+            timestamp: bl.timestamp,
+            txCount: bl.txCount,
+            hash: bl.blockId,
+            miner: bl.witnessAddress,
+            gasUsed: "0",
+            gasLimit: "1",
+            size: 0,
+            transactions: [],
+          })));
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
     } else {
       Promise.all([
         fetch(`/api/chain?chain=${slug}&action=stats`).then((r) => r.json()),

@@ -34,6 +34,24 @@ export default function ChainTransactionsPage() {
           setLoading(false);
         })
         .catch(() => setLoading(false));
+    } else if (slug === "tron") {
+      // Tron: fetch blocks with transactions from API
+      fetch("/api/tron?action=blocks&count=5")
+        .then((r) => r.json())
+        .then(async (data) => {
+          // Blocks from the list endpoint don't include tx details,
+          // so we fetch the latest block with txns
+          const latest = data.blocks?.[0];
+          if (!latest) { setLoading(false); return; }
+          const blockData = await fetch(`/api/tron?action=block&num=${latest.number}`).then((r) => r.json());
+          const all: typeof txns = [];
+          for (const tx of blockData.transactions || []) {
+            all.push({ hash: tx.txID, blockNumber: latest.number, timestamp: tx.timestamp || latest.timestamp });
+          }
+          setTxns(all.slice(0, 50));
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
     } else {
       fetch(`/api/chain?chain=${slug}&action=blocks&count=10`)
         .then((r) => r.json())

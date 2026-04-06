@@ -21,10 +21,15 @@ export default function ChainBlocksPage() {
   const fetchBlocks = useCallback((before?: number) => {
     setLoading(true);
     let url: string;
+    const isTron = slug === "tron";
     if (isSolana) {
       url = before
         ? `/api/solana?action=blocks&count=15&before=${before}`
         : `/api/solana?action=blocks&count=15`;
+    } else if (isTron) {
+      url = before
+        ? `/api/tron?action=blocks&count=15&before=${before}`
+        : `/api/tron?action=blocks&count=15`;
     } else {
       url = before
         ? `/api/chain?chain=${slug}&action=blocks&count=25&before=${before}`
@@ -38,6 +43,13 @@ export default function ChainBlocksPage() {
           setBlocks((data.blocks || []).map((b: any) => ({
             ...b, number: b.slot, timestamp: b.blockTime, hash: b.blockhash,
             miner: "", gasUsed: "0", gasLimit: "1", size: 0,
+          })));
+        } else if (isTron) {
+          setLatestBlock(data.latestBlock || 0);
+          setBlocks((data.blocks || []).map((b: any) => ({
+            number: b.number, timestamp: b.timestamp, txCount: b.txCount,
+            hash: b.blockId, miner: b.witnessAddress || "",
+            gasUsed: "0", gasLimit: "1", size: 0,
           })));
         } else {
           setBlocks(data.blocks || []);
