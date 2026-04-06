@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Skeleton } from "@/components/skeleton";
 import { CHAINS, type ChainConfig } from "@/lib/chains/registry";
+import { getChainLogo } from "@/lib/chains/logos";
 
 interface ChainData {
   chain: string;
@@ -154,19 +155,26 @@ export default function ChainsPage() {
                     >
                       <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: CHAIN_COLORS[chain.chain] || "#6B7280" }}
-                          />
-                          <a
-                            href={`/chains/${CHAINS.find((c) => c.name === chain.chain)?.slug || "#"}`}
-                            className="text-sm font-medium hover:underline"
-                            style={{ color: CHAIN_COLORS[chain.chain] || undefined }}
-                          >
-                            {chain.chain}
-                          </a>
-                        </div>
+                        {(() => {
+                          const cfg = CHAINS.find((c) => c.name === chain.chain);
+                          const logo = cfg ? getChainLogo(cfg.slug) : undefined;
+                          return (
+                            <div className="flex items-center gap-2">
+                              {logo ? (
+                                <img src={logo} alt={chain.chain} className="h-5 w-5 rounded-full" />
+                              ) : (
+                                <div className="h-5 w-5 rounded-full" style={{ backgroundColor: CHAIN_COLORS[chain.chain] || "#6B7280" }} />
+                              )}
+                              <a
+                                href={`/chains/${cfg?.slug || "#"}`}
+                                className="text-sm font-medium hover:underline"
+                                style={{ color: CHAIN_COLORS[chain.chain] || undefined }}
+                              >
+                                {chain.chain}
+                              </a>
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="text-right text-sm font-medium">
                         {fmtUsd(chain.totalSupply)}

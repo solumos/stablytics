@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ClientOnlyChart } from "@/components/client-only-chart";
 import { getCoinLogo } from "@/lib/stablecoins/logos";
+import { getChainLogo } from "@/lib/chains/logos";
 import type {
   StablecoinOverview,
   ChainChartData,
@@ -280,11 +281,16 @@ export function HomeDashboard() {
             {overview.chains.slice(0, 5).map((chain, i) => {
               const cfg = CHAINS.find((c) => c.name === chain.chain);
               const pct = (chain.totalSupply / overview.totalGlobalSupply) * 100;
+              const chainLogo = cfg ? getChainLogo(cfg.slug) : undefined;
               return (
                 <a key={chain.chain} href={cfg ? `/chains/${cfg.slug}` : "#"} className="flex items-center justify-between rounded-lg border border-border/30 px-3 py-2.5 transition-colors hover:bg-muted/20">
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-bold text-muted-foreground w-4">{i + 1}</span>
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: CHAIN_COLORS[chain.chain] || "#6B7280" }} />
+                    {chainLogo ? (
+                      <img src={chainLogo} alt={chain.chain} className="h-5 w-5 rounded-full" />
+                    ) : (
+                      <div className="h-5 w-5 rounded-full" style={{ backgroundColor: CHAIN_COLORS[chain.chain] || "#6B7280" }} />
+                    )}
                     <div>
                       <span className="text-sm font-medium">{chain.chain}</span>
                       <div className="flex items-center gap-2 mt-0.5">
