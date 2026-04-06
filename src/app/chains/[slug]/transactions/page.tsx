@@ -117,6 +117,22 @@ export default function ChainTransactionsPage() {
           setLoading(false);
         })
         .catch(() => setLoading(false));
+    } else if (slug === "tempo") {
+      fetch("/api/tempo?action=transfers")
+        .then((r) => r.json())
+        .then((data) => {
+          setTransfers((data.transfers || []).map((t: any) => ({
+            hash: t.hash,
+            from: t.from,
+            to: t.to,
+            value: t.value,
+            asset: t.asset,
+            blockNumber: t.blockNumber,
+            timestamp: 0,
+          })));
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
     } else if (slug === "sui") {
       fetch("/api/sui?action=blocks&count=5")
         .then((r) => r.json())

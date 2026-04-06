@@ -97,6 +97,64 @@ export async function GET(request: Request) {
       return NextResponse.json(result);
     }
 
+    if (action === "transfers") {
+      const result = await cached("tempo:stablecoin-transfers", async () => {
+        // Fetch latest block, then get Transfer logs from last 500 blocks
+        const latestHex = await fetch(chain.rpcUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_blockNumber", params: [] }),
+          cache: "no-store",
+        }).then((r) => r.json()).then((d) => d.result);
+
+        const latest = parseInt(latestHex, 16);
+        const from = latest - 500;
+
+        const logsRes = await fetch(chain.rpcUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0", id: 2, method: "eth_getLogs",
+            params: [{
+              fromBlock: `0x${from.toString(16)}`,
+              toBlock: `0x${latest.toString(16)}`,
+              topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
+            }],
+          }),
+          cache: "no-store",
+        }).then((r) => r.json());
+
+        const logs = logsRes.result || [];
+        const tokenList = await cached("tempo:tokenlist", () => getTempoTokenList(), 60_000);
+
+        const transfers = logs
+          .filter((l: any) => l.topics?.length >= 3)
+          .map((l: any) => {
+            const tokenAddr = l.address?.toLowerCase();
+            const token = tokenList.find((t) => t.address.toLowerCase() === tokenAddr);
+            const decimals = token?.decimals || 6;
+            let value = 0;
+            try { value = Number(BigInt(l.data)) / 10 ** decimals; } catch {}
+
+            return {
+              hash: l.transactionHash,
+              from: "0x" + l.topics[1].slice(26),
+              to: "0x" + l.topics[2].slice(26),
+              value,
+              asset: token?.symbol || "Unknown",
+              blockNumber: parseInt(l.blockNumber, 16),
+            };
+          })
+          .filter((t: any) => t.value > 0 && t.value < 1_000_000_000)
+          .reverse()
+          .slice(0, 50);
+
+        return { transfers };
+      });
+
+      return NextResponse.json(result);
+    }
+
     return NextResponse.json({ error: "unknown action" }, { status: 400 });
   } catch (e) {
     return NextResponse.json(
