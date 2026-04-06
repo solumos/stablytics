@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getCoinLogo } from "@/lib/stablecoins/logos";
 import {
   Table,
   TableBody,
@@ -222,9 +223,10 @@ export default function ChainStablecoinPage() {
                     <TableCell>
                       <a
                         href={`/chains/${slug}/coins/${coin.symbol.toLowerCase()}`}
-                        className="text-sm font-medium hover:underline"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium hover:underline"
                         style={{ color }}
                       >
+                        {getCoinLogo(coin.symbol) && <img src={getCoinLogo(coin.symbol)} alt="" className="h-4 w-4 rounded-full" />}
                         {coin.symbol}
                       </a>
                     </TableCell>

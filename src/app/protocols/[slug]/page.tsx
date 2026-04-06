@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Globe, Coins, Layers } from "lucide-react";
 import { getProtocolBySlug } from "@/lib/stablecoins/protocols";
 import { CHAINS } from "@/lib/chains/registry";
+import { getCoinLogo } from "@/lib/stablecoins/logos";
+import { getChainLogo } from "@/lib/chains/logos";
 
 const catColors: Record<string, string> = {
   DEX: "bg-purple-500/10 text-purple-400 border-purple-500/20",
@@ -134,7 +136,11 @@ export default function ProtocolDetailPage() {
                       href={cfg ? `/chains/${cfg.slug}` : "#"}
                       className="inline-flex items-center gap-1.5 rounded-md border border-border/30 px-2.5 py-1 text-xs font-medium transition-colors hover:bg-muted/30"
                     >
-                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: cfg?.color || "#6B7280" }} />
+                      {cfg && getChainLogo(cfg.slug) ? (
+                        <img src={getChainLogo(cfg.slug)} alt="" className="h-4 w-4 rounded-full" />
+                      ) : (
+                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: cfg?.color || "#6B7280" }} />
+                      )}
                       {c}
                     </a>
                   );
@@ -153,8 +159,9 @@ export default function ProtocolDetailPage() {
                   <a
                     key={s}
                     href={`/coins/${s.toLowerCase()}`}
-                    className="rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20"
+                    className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20"
                   >
+                    {getCoinLogo(s) && <img src={getCoinLogo(s)} alt="" className="h-3.5 w-3.5 rounded-full" />}
                     {s}
                   </a>
                 ))}

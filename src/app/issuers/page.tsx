@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/skeleton";
 import { ISSUERS, SYMBOL_TO_ISSUER } from "@/lib/stablecoins/issuers";
+import { getCoinLogo } from "@/lib/stablecoins/logos";
 
 interface StablecoinData {
   symbol: string;
@@ -160,8 +161,9 @@ export default function IssuersPage() {
                             <Badge
                               key={c.symbol}
                               variant="outline"
-                              className="text-[10px] border-border/50 text-muted-foreground"
+                              className="inline-flex items-center gap-1 text-[10px] border-border/50 text-muted-foreground"
                             >
+                              {getCoinLogo(c.symbol) && <img src={getCoinLogo(c.symbol)} alt="" className="h-3 w-3 rounded-full" />}
                               {c.symbol} {fmtUsd(c.supply)}
                             </Badge>
                           ))}

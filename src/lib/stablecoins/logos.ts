@@ -14,6 +14,11 @@ const LOGOS: Record<string, string> = {
   RLUSD: "/logos/rlusd.png",
   BUIDL: "/logos/buidl.png",
   crvUSD: "/logos/crvusd.jpg",
+  USD1: "/logos/usd1.png",
+  USDG: "/logos/usdg.png",
+  USDf: "/logos/usdf.png",
+  U: "/logos/u.jpg",
+  FDUSD: "/logos/fdusd.png",
 };
 
 export function getCoinLogo(symbol: string): string | undefined {
