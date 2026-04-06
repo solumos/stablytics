@@ -27,7 +27,7 @@ import type {
   ChainChartData,
 } from "@/lib/stablecoins/defillama";
 import type { GlobalMetrics } from "@/lib/stablecoins/metrics";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRightLeft, Users, UserCheck } from "lucide-react";
 
 function fmtUsd(n: number): string {
@@ -103,14 +103,25 @@ const TIME_RANGES = [
   { key: "1y", label: "1Y", hours: 8760 },
 ] as const;
 
-interface Props {
-  overview: StablecoinOverview;
-  chart: ChainChartData[];
-  metrics: GlobalMetrics | null;
-}
-
-export function HomeDashboard({ overview, chart, metrics }: Props) {
+export function HomeDashboard() {
+  const [overview, setOverview] = useState<StablecoinOverview | null>(null);
+  const [chart, setChart] = useState<ChainChartData[]>([]);
+  const [metrics, setMetrics] = useState<GlobalMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<string>("1y");
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/stablecoins").then((r) => r.json()).catch(() => null),
+      fetch("/api/stablecoins?chart=all").then((r) => r.json()).then((d) => d.chart || []).catch(() => []),
+      fetch("/api/metrics").then((r) => r.json()).catch(() => null),
+    ]).then(([ov, ch, met]) => {
+      if (ov?.totalGlobalSupply) setOverview(ov);
+      setChart(ch.filter((p: ChainChartData) => p.supply > 0).slice(-90));
+      if (met?.transactions) setMetrics(met);
+      setLoading(false);
+    });
+  }, []);
 
   // Metrics are per-hour rates. Multiply by hours for selected range.
   const selectedRange = TIME_RANGES.find((r) => r.key === range) || TIME_RANGES[5];
@@ -130,7 +141,7 @@ export function HomeDashboard({ overview, chart, metrics }: Props) {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Stablecoin Analytics</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Cross-chain stablecoin transfers across {overview.chains.length} chains
+            Cross-chain stablecoin transfers{overview ? ` across ${overview.chains.length} chains` : ""}
           </p>
         </div>
         <div className="inline-flex items-center gap-1 rounded-lg bg-muted/50 p-1">
@@ -198,6 +209,13 @@ export function HomeDashboard({ overview, chart, metrics }: Props) {
 
       {/* Supply metrics removed — transfer metrics above + charts below are sufficient */}
 
+      {!overview && loading && (
+        <div className="flex items-center justify-center py-16 text-muted-foreground">
+          Loading stablecoin data...
+        </div>
+      )}
+
+      {overview && <>
       {/* ── Charts ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
         <Card className="border-border/40 bg-card/50">
@@ -408,6 +426,7 @@ export function HomeDashboard({ overview, chart, metrics }: Props) {
           </CardContent>
         </Card>
       )}
+      </>}
     </div>
   );
 }
