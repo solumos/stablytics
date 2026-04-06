@@ -6,7 +6,6 @@ import {
   DollarSign,
   TrendingUp,
   Globe,
-  Coins,
 } from "lucide-react";
 import { CHAINS } from "@/lib/chains/registry";
 import {
@@ -20,18 +19,8 @@ import {
   BarChart,
   Bar,
   Cell,
-  PieChart,
-  Pie,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ClientOnlyChart } from "@/components/client-only-chart";
 import type {
@@ -121,7 +110,7 @@ export function HomeDashboard({ overview, chart }: Props) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
         <Card className="border-border/40 bg-card/50">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
@@ -152,15 +141,6 @@ export function HomeDashboard({ overview, chart }: Props) {
             </div>
             <p className="mt-2 text-2xl font-bold">{fmtUsd(totalNonUsd)}</p>
             <span className="text-xs text-muted-foreground">{overview.nonUsdGroups.length} currencies</span>
-          </CardContent>
-        </Card>
-        <Card className="border-border/40 bg-card/50">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Chains / Stablecoins</span>
-              <Coins className="h-4 w-4 text-muted-foreground/60" />
-            </div>
-            <p className="mt-2 text-2xl font-bold">{overview.chains.length} <span className="text-lg text-muted-foreground font-normal">/ {overview.topStablecoins.length}+</span></p>
           </CardContent>
         </Card>
       </div>
@@ -219,102 +199,6 @@ export function HomeDashboard({ overview, chart }: Props) {
           </CardContent>
         </Card>
       </div>
-
-      {/* ── Full chain table ── */}
-      <Card className="border-border/40 bg-card/50 mb-8">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Stablecoin Supply by Chain</CardTitle>
-            <a href="/chains" className="text-xs font-medium text-emerald-400 hover:text-emerald-300">View all</a>
-          </div>
-        </CardHeader>
-        <CardContent className="px-0 pb-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/40 hover:bg-transparent">
-                <TableHead className="text-xs w-10">#</TableHead>
-                <TableHead className="text-xs">Chain</TableHead>
-                <TableHead className="text-xs text-right">Total Supply</TableHead>
-                <TableHead className="text-xs text-right">24h</TableHead>
-                <TableHead className="text-xs text-right">7d</TableHead>
-                <TableHead className="text-xs text-right">30d</TableHead>
-                <TableHead className="text-xs">Dominant</TableHead>
-                <TableHead className="text-xs text-right">Assets</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {overview.chains.map((chain, i) => {
-                const cfg = CHAINS.find((c) => c.name === chain.chain);
-                return (
-                  <TableRow key={chain.chain} className="border-border/40 hover:bg-muted/30 cursor-pointer" onClick={() => { if (cfg) window.location.href = `/chains/${cfg.slug}`; }}>
-                    <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: CHAIN_COLORS[chain.chain] || "#6B7280" }} />
-                        <span className="text-sm font-medium">{chain.chain}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right text-sm font-medium">{fmtUsdFull(chain.totalSupply)}</TableCell>
-                    <TableCell className="text-right"><Change value={chain.change24h} /></TableCell>
-                    <TableCell className="text-right"><Change value={chain.change7d} /></TableCell>
-                    <TableCell className="text-right"><Change value={chain.change30d} /></TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-medium">{chain.dominantStablecoin}</span>
-                        <span className="text-[10px] text-muted-foreground">{chain.dominantStablecoinPct.toFixed(0)}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right text-xs text-muted-foreground">{chain.stablecoinCount}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* ── Top USD stablecoins ── */}
-      <Card className="border-border/40 bg-card/50 mb-8">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Top USD Stablecoins</CardTitle>
-            <a href="/coins" className="text-xs font-medium text-emerald-400 hover:text-emerald-300">View all</a>
-          </div>
-        </CardHeader>
-        <CardContent className="px-0 pb-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/40 hover:bg-transparent">
-                <TableHead className="text-xs w-10">#</TableHead>
-                <TableHead className="text-xs">Stablecoin</TableHead>
-                <TableHead className="text-xs text-right">Supply</TableHead>
-                <TableHead className="text-xs text-right">24h</TableHead>
-                <TableHead className="text-xs text-right">7d</TableHead>
-                <TableHead className="text-xs">Type</TableHead>
-                <TableHead className="text-xs text-right">Chains</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {overview.topStablecoins.slice(0, 10).map((coin, i) => (
-                <TableRow key={coin.symbol} className="border-border/40 hover:bg-muted/30 cursor-pointer" onClick={() => window.location.href = `/coins/${coin.symbol.toLowerCase()}`}>
-                  <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
-                  <TableCell>
-                    <a href={`/coins/${coin.symbol.toLowerCase()}`} className="text-sm font-medium text-emerald-400 hover:underline">{coin.symbol}</a>
-                    <span className="ml-2 text-xs text-muted-foreground">{coin.name}</span>
-                  </TableCell>
-                  <TableCell className="text-right text-sm font-medium">{fmtUsdFull(coin.supply)}</TableCell>
-                  <TableCell className="text-right"><Change value={coin.change24h} /></TableCell>
-                  <TableCell className="text-right"><Change value={coin.change7d} /></TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-[10px] border-border/50 text-muted-foreground">{coin.mechanism || coin.pegType}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right text-xs text-muted-foreground">{coin.chainCount}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
 
       {/* ── Top 5 sections side by side ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-8">
