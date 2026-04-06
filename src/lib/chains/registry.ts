@@ -189,7 +189,17 @@ export const CHAINS: ChainConfig[] = [
     nativeSymbol: "HYPE",
     nativeDecimals: 18,
   },
-  // Non-EVM chains — explorer not yet supported
+  {
+    slug: "stellar",
+    name: "Stellar",
+    chainId: -1,
+    rpcUrl: "",
+    explorerEnabled: false,
+    color: "#7B61FF",
+    nativeSymbol: "XLM",
+    nativeDecimals: 7,
+  },
+  // Non-EVM chains with dedicated RPC clients
   {
     slug: "tron",
     name: "Tron",

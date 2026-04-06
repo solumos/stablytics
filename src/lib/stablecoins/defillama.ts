@@ -150,6 +150,7 @@ export const TARGET_CHAINS: Record<string, string> = {
   Stable: "Stable",
   "Hyperliquid L1": "Hyperliquid",
   Plasma: "Plasma",
+  Stellar: "Stellar",
 };
 
 function pegUsd(v: PeggedValue | undefined): number {
@@ -338,6 +339,16 @@ export async function getStablecoinOverview(): Promise<StablecoinOverview> {
         nonUsdMap.get(curr)!.push(entry);
       }
 
+      // Manually add stablecoins not tracked by DefiLlama
+      const manualEntries: StablecoinEntry[] = [
+        { symbol: "MXNe", name: "MXNe (Ethena Mexican Peso)", supply: 0, change24h: 0, change7d: 0, pegType: "peggedMXN", mechanism: "crypto-backed", chainCount: 1, currency: "MXN" },
+        { symbol: "MXNB", name: "MXNB (Brale Mexican Peso)", supply: 0, change24h: 0, change7d: 0, pegType: "peggedMXN", mechanism: "fiat-backed", chainCount: 1, currency: "MXN" },
+      ];
+      for (const entry of manualEntries) {
+        if (!nonUsdMap.has(entry.currency)) nonUsdMap.set(entry.currency, []);
+        nonUsdMap.get(entry.currency)!.push(entry);
+      }
+
       const nonUsdGroups: CurrencyGroup[] = Array.from(nonUsdMap.entries())
         .map(([currency, coins]) => {
           coins.sort((a, b) => b.supply - a.supply);
@@ -349,7 +360,7 @@ export async function getStablecoinOverview(): Promise<StablecoinOverview> {
             stablecoins: coins,
           };
         })
-        .filter((g) => g.totalSupply > 100_000) // min $100K
+        .filter((g) => g.totalSupply > 0 || g.stablecoins.length > 0)
         .sort((a, b) => b.totalSupply - a.totalSupply);
 
       // Yield-bearing tokens (separate from stablecoins)

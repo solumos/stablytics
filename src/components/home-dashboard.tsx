@@ -60,14 +60,14 @@ const CHAIN_COLORS: Record<string, string> = {
   Optimism: "#FF0420", Base: "#0052FF", TON: "#0098EA", Sui: "#4DA2FF",
   Celo: "#FCFF52", "zkSync Era": "#8B8DFC", Linea: "#61DFFF",
   Scroll: "#FFEEDA", Tempo: "#34d399", Stable: "#3B82F6",
-  Hyperliquid: "#77F2A1", Plasma: "#FF6B35",
+  Hyperliquid: "#77F2A1", Plasma: "#FF6B35", Stellar: "#7B61FF",
 };
 
 const CURRENCY_COLORS: Record<string, string> = {
   EUR: "#003399", GBP: "#C8102E", BRL: "#009739", RUB: "#D52B1E",
   JPY: "#BC002D", CHF: "#FF0000", AUD: "#00008B", SGD: "#EF3340",
   TRY: "#E30A17", CAD: "#FF0000", CNY: "#DE2910", PHP: "#0038A8",
-  VAR: "#6B7280", OTHER: "#6B7280",
+  MXN: "#006847", VAR: "#6B7280", OTHER: "#6B7280",
 };
 
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
