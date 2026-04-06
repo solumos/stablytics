@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { cached } from "@/lib/cache";
+import { TARGET_CHAINS } from "@/lib/stablecoins/defillama";
 
 export const revalidate = 60;
+
+// Map DefiLlama chain names to display names
+const chainNameMap: Record<string, string> = {};
+for (const [dlName, displayName] of Object.entries(TARGET_CHAINS)) {
+  chainNameMap[dlName] = displayName;
+}
 
 interface PeggedValue {
   peggedUSD?: number;
@@ -65,7 +72,7 @@ export async function GET(request: Request) {
             const prevWeek = peg(data.circulatingPrevWeek);
             const prevMonth = peg(data.circulatingPrevMonth);
             return {
-              chain,
+              chain: chainNameMap[chain] || chain,
               supply,
               change24h: prevDay > 0 ? ((supply - prevDay) / prevDay) * 100 : 0,
               change7d: prevWeek > 0 ? ((supply - prevWeek) / prevWeek) * 100 : 0,
