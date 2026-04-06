@@ -4,8 +4,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   DollarSign,
-  TrendingUp,
-  Globe,
 } from "lucide-react";
 import { CHAINS } from "@/lib/chains/registry";
 import {
@@ -111,7 +109,6 @@ interface Props {
 }
 
 export function HomeDashboard({ overview, chart, metrics }: Props) {
-  const totalNonUsd = overview.nonUsdGroups.reduce((s, g) => s + g.totalSupply, 0);
   const [range, setRange] = useState<string>("1y");
 
   // Metrics are per-hour rates. Multiply by hours for selected range.
@@ -198,41 +195,7 @@ export function HomeDashboard({ overview, chart, metrics }: Props) {
         </div>
       )}
 
-      {/* ── Supply metrics ── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
-        <Card className="border-border/40 bg-card/50">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Total Supply (USD pegged)</span>
-              <DollarSign className="h-4 w-4 text-muted-foreground/60" />
-            </div>
-            <p className="mt-2 text-2xl font-bold">{fmtUsd(overview.totalGlobalSupply)}</p>
-            <Change value={overview.globalChange24h} /><span className="ml-1 text-xs text-muted-foreground">24h</span>
-          </CardContent>
-        </Card>
-        <Card className="border-border/40 bg-card/50">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Supply Change</span>
-              <TrendingUp className="h-4 w-4 text-muted-foreground/60" />
-            </div>
-            <div className="mt-2 flex items-baseline gap-3">
-              <div><Change value={overview.globalChange7d} /><span className="ml-1 text-xs text-muted-foreground">7d</span></div>
-              <div><Change value={overview.globalChange30d} /><span className="ml-1 text-xs text-muted-foreground">30d</span></div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-border/40 bg-card/50">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Non-USD & Yield-Bearing</span>
-              <Globe className="h-4 w-4 text-muted-foreground/60" />
-            </div>
-            <p className="mt-2 text-2xl font-bold">{fmtUsd(totalNonUsd + overview.yieldBearingTotal)}</p>
-            <span className="text-xs text-muted-foreground">{overview.nonUsdGroups.length} currencies + yield tokens</span>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Supply metrics removed — transfer metrics above + charts below are sufficient */}
 
       {/* ── Charts ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
