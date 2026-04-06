@@ -161,7 +161,14 @@ export default function ChainStablecoinPage() {
           </Card>
         </div>
       ) : (
-        <p className="mb-6 text-muted-foreground">No stablecoin data available for {chain.name}.</p>
+        <Card className="border-border/40 bg-card/50 mb-6">
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">
+              {chain.name} is not yet tracked by DefiLlama for stablecoin supply data.
+              {chain.explorerEnabled && " Use the explorer below to browse on-chain activity."}
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Stablecoin breakdown table */}
@@ -224,24 +231,27 @@ export default function ChainStablecoinPage() {
         </Card>
       )}
 
-      {/* Quick links */}
+      {/* Quick links — always show for explorer-enabled chains */}
       {chain.explorerEnabled && (
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 mb-6">
           <a
             href={`/chains/${slug}/performance`}
             className="rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
+            style={{ color }}
           >
             Network Performance →
           </a>
           <a
             href={`/chains/${slug}/blocks`}
             className="rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
+            style={{ color }}
           >
-            Block Explorer →
+            {slug === "solana" ? "Slots" : "Blocks"} →
           </a>
           <a
             href={`/chains/${slug}/transactions`}
             className="rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
+            style={{ color }}
           >
             Transactions →
           </a>

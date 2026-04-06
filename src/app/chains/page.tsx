@@ -12,7 +12,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Skeleton } from "@/components/skeleton";
-import { CHAINS } from "@/lib/chains/registry";
+import { CHAINS, type ChainConfig } from "@/lib/chains/registry";
 
 interface ChainData {
   chain: string;
@@ -78,7 +78,29 @@ export default function ChainsPage() {
   useEffect(() => {
     fetch("/api/stablecoins")
       .then((r) => r.json())
-      .then((d) => { if (d.chains) setData(d); setLoading(false); })
+      .then((d) => {
+        if (d.chains) {
+          // Add any registry chains missing from DefiLlama
+          const existingNames = new Set(d.chains.map((c: ChainData) => c.chain));
+          for (const cfg of CHAINS) {
+            if (!existingNames.has(cfg.name) && cfg.explorerEnabled) {
+              d.chains.push({
+                chain: cfg.name,
+                totalSupply: 0,
+                change24h: 0,
+                change7d: 0,
+                change30d: 0,
+                dominantStablecoin: "—",
+                dominantStablecoinPct: 0,
+                topStablecoins: [],
+                stablecoinCount: 0,
+              });
+            }
+          }
+          setData(d);
+        }
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
