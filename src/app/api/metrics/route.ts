@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
-import { getStablecoinMetrics } from "@/lib/stablecoins/metrics";
+import { getCachedMetrics } from "@/lib/stablecoins/metrics-cache";
 
 export const revalidate = 60;
 
 export async function GET() {
   try {
-    const metrics = await getStablecoinMetrics();
+    const metrics = await getCachedMetrics();
+    if (!metrics) {
+      return NextResponse.json(
+        { error: "metrics not yet computed" },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(metrics, {
       headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
       },
     });
   } catch (e) {
