@@ -92,22 +92,33 @@ export interface ChainStablecoinData {
   stablecoinCount: number;
 }
 
+export interface StablecoinEntry {
+  symbol: string;
+  name: string;
+  supply: number;
+  change24h: number;
+  change7d: number;
+  pegType: string;
+  mechanism: string;
+  chainCount: number;
+  currency: string; // "USD", "EUR", "BRL", etc.
+}
+
+export interface CurrencyGroup {
+  currency: string;
+  label: string;
+  totalSupply: number;
+  stablecoins: StablecoinEntry[];
+}
+
 export interface StablecoinOverview {
   totalGlobalSupply: number;
   globalChange24h: number;
   globalChange7d: number;
   globalChange30d: number;
   chains: ChainStablecoinData[];
-  topStablecoins: {
-    symbol: string;
-    name: string;
-    supply: number;
-    change24h: number;
-    change7d: number;
-    pegType: string;
-    mechanism: string;
-    chainCount: number;
-  }[];
+  topStablecoins: StablecoinEntry[];
+  nonUsdGroups: CurrencyGroup[];
   lastUpdated: number;
 }
 
@@ -143,6 +154,29 @@ export const TARGET_CHAINS: Record<string, string> = {
 function pegUsd(v: PeggedValue | undefined): number {
   return v?.peggedUSD ?? 0;
 }
+
+function pegAny(v: PeggedValue | undefined): number {
+  if (!v) return 0;
+  return v.peggedUSD ?? v.peggedEUR ?? v.peggedVAR ?? 0;
+}
+
+const PEG_CURRENCY_MAP: Record<string, { currency: string; label: string }> = {
+  peggedUSD: { currency: "USD", label: "US Dollar" },
+  peggedEUR: { currency: "EUR", label: "Euro" },
+  peggedGBP: { currency: "GBP", label: "British Pound" },
+  peggedJPY: { currency: "JPY", label: "Japanese Yen" },
+  peggedCHF: { currency: "CHF", label: "Swiss Franc" },
+  peggedCAD: { currency: "CAD", label: "Canadian Dollar" },
+  peggedAUD: { currency: "AUD", label: "Australian Dollar" },
+  peggedSGD: { currency: "SGD", label: "Singapore Dollar" },
+  peggedREAL: { currency: "BRL", label: "Brazilian Real" },
+  peggedTRY: { currency: "TRY", label: "Turkish Lira" },
+  peggedRUB: { currency: "RUB", label: "Russian Ruble" },
+  peggedMXN: { currency: "MXN", label: "Mexican Peso" },
+  peggedPHP: { currency: "PHP", label: "Philippine Peso" },
+  peggedCNY: { currency: "CNY", label: "Chinese Yuan" },
+  peggedVAR: { currency: "VAR", label: "Variable / Other" },
+};
 
 // ── Fetchers ──
 
@@ -266,31 +300,56 @@ export async function getStablecoinOverview(): Promise<StablecoinOverview> {
       // Sort by total supply descending
       chains.sort((a, b) => b.totalSupply - a.totalSupply);
 
-      // Top stablecoins globally
-      const topStablecoins = stablecoins
-        .filter((a) => pegUsd(a.circulating) > 0)
-        .sort((a, b) => pegUsd(b.circulating) - pegUsd(a.circulating))
-        .slice(0, 15)
-        .map((a) => ({
+      // Build all stablecoin entries with currency classification
+      function makeEntry(a: PeggedAsset): StablecoinEntry {
+        const supply = pegAny(a.circulating);
+        const prevDay = pegAny(a.circulatingPrevDay);
+        const prevWeek = pegAny(a.circulatingPrevWeek);
+        const currencyInfo = PEG_CURRENCY_MAP[a.pegType] || { currency: "OTHER", label: "Other" };
+        return {
           symbol: a.symbol,
           name: a.name,
-          supply: pegUsd(a.circulating),
-          change24h:
-            pegUsd(a.circulatingPrevDay) > 0
-              ? ((pegUsd(a.circulating) - pegUsd(a.circulatingPrevDay)) /
-                  pegUsd(a.circulatingPrevDay)) *
-                100
-              : 0,
-          change7d:
-            pegUsd(a.circulatingPrevWeek) > 0
-              ? ((pegUsd(a.circulating) - pegUsd(a.circulatingPrevWeek)) /
-                  pegUsd(a.circulatingPrevWeek)) *
-                100
-              : 0,
+          supply,
+          change24h: prevDay > 0 ? ((supply - prevDay) / prevDay) * 100 : 0,
+          change7d: prevWeek > 0 ? ((supply - prevWeek) / prevWeek) * 100 : 0,
           pegType: a.pegType,
           mechanism: a.pegMechanism,
           chainCount: a.chains.length,
-        }));
+          currency: currencyInfo.currency,
+        };
+      }
+
+      // Top USD stablecoins
+      const topStablecoins = stablecoins
+        .filter((a) => a.pegType === "peggedUSD" && pegUsd(a.circulating) > 0)
+        .sort((a, b) => pegUsd(b.circulating) - pegUsd(a.circulating))
+        .slice(0, 20)
+        .map(makeEntry);
+
+      // Non-USD groups
+      const nonUsdMap = new Map<string, StablecoinEntry[]>();
+      for (const a of stablecoins) {
+        if (a.pegType === "peggedUSD") continue;
+        const entry = makeEntry(a);
+        if (entry.supply <= 0) continue;
+        const curr = entry.currency;
+        if (!nonUsdMap.has(curr)) nonUsdMap.set(curr, []);
+        nonUsdMap.get(curr)!.push(entry);
+      }
+
+      const nonUsdGroups: CurrencyGroup[] = Array.from(nonUsdMap.entries())
+        .map(([currency, coins]) => {
+          coins.sort((a, b) => b.supply - a.supply);
+          const info = Object.values(PEG_CURRENCY_MAP).find((p) => p.currency === currency);
+          return {
+            currency,
+            label: info?.label || currency,
+            totalSupply: coins.reduce((s, c) => s + c.supply, 0),
+            stablecoins: coins,
+          };
+        })
+        .filter((g) => g.totalSupply > 100_000) // min $100K
+        .sort((a, b) => b.totalSupply - a.totalSupply);
 
       return {
         totalGlobalSupply,
@@ -308,6 +367,7 @@ export async function getStablecoinOverview(): Promise<StablecoinOverview> {
             : 0,
         chains,
         topStablecoins,
+        nonUsdGroups,
         lastUpdated: Date.now(),
       };
     },
