@@ -359,6 +359,66 @@ export default function ChainAddressPage() {
           setLoading(false);
         })
         .catch(() => setLoading(false));
+    } else if (slug === "ton") {
+      fetch(`/api/ton?action=address&address=${address}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.error) { setLoading(false); return; }
+          const acct = d.account;
+          setData({
+            address,
+            addressType: "eoa",
+            balance: acct.balance || "0",
+            isContract: false,
+            txCount: 0,
+            codeSize: 0,
+            nativeSymbol: "TON",
+            tokenBalances: [],
+            stablecoinInfo: null,
+            tokenMeta: null,
+          });
+          setTransfers((d.transactions || []).map((t: any) => ({
+            blockNum: "0",
+            hash: t.hash || "",
+            from: t.from || address,
+            to: t.to || "",
+            value: t.value ? Number(t.value) / 1e9 : null,
+            asset: "TON",
+            category: "external",
+          })));
+          setTransfersLoading(false);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else if (slug === "sui") {
+      fetch(`/api/sui?action=address&address=${address}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.error) { setLoading(false); return; }
+          const suiBalance = (d.balances || []).find((b: any) => b.coinType === "0x2::sui::SUI");
+          setData({
+            address,
+            addressType: "eoa",
+            balance: suiBalance?.totalBalance || "0",
+            isContract: false,
+            txCount: 0,
+            codeSize: 0,
+            nativeSymbol: "SUI",
+            tokenBalances: (d.balances || [])
+              .filter((b: any) => b.coinType !== "0x2::sui::SUI" && b.totalBalance !== "0")
+              .map((b: any) => ({
+                contractAddress: b.coinType,
+                tokenBalance: b.totalBalance,
+                symbol: b.coinType.split("::").pop() || "?",
+                decimals: 9,
+              })),
+            stablecoinInfo: null,
+            tokenMeta: null,
+          });
+          setTransfersLoading(false);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
     } else {
       fetch(`/api/chain?chain=${slug}&action=address&address=${address}`)
         .then((r) => r.json())

@@ -90,12 +90,35 @@ export default function ChainPerformancePage() {
           setLoading(false);
         })
         .catch(() => setLoading(false));
+    } else if (slug === "ton") {
+      Promise.all([
+        fetch("/api/ton?action=stats").then((r) => r.json()),
+        fetch("/api/ton?action=blocks&count=8").then((r) => r.json()),
+      ]).then(([s, b]) => {
+        if (s.latestBlock) setStats({ latestBlock: s.latestBlock, avgBlockTime: s.avgBlockTime, avgTps: 0, gasPrice: "0" });
+        if (b.blocks) setBlocks(b.blocks.map((bl: any) => ({
+          number: bl.seqno, timestamp: bl.genUtime, txCount: bl.txCount,
+          hash: "", miner: "", gasUsed: "0", gasLimit: "1", size: 0, transactions: [],
+        })));
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    } else if (slug === "sui") {
+      Promise.all([
+        fetch("/api/sui?action=stats").then((r) => r.json()),
+        fetch("/api/sui?action=blocks&count=8").then((r) => r.json()),
+      ]).then(([s, b]) => {
+        if (s.latestCheckpoint) setStats({ latestBlock: s.latestCheckpoint, avgBlockTime: s.avgCheckpointTime, avgTps: 0, gasPrice: "0" });
+        if (b.blocks) setBlocks(b.blocks.map((bl: any) => ({
+          number: bl.number, timestamp: bl.timestamp, txCount: bl.txCount,
+          hash: bl.digest, miner: "", gasUsed: "0", gasLimit: "1", size: 0, transactions: bl.transactions || [],
+        })));
+        setLoading(false);
+      }).catch(() => setLoading(false));
     } else {
       Promise.all([
         fetch(`/api/chain?chain=${slug}&action=stats`).then((r) => r.json()),
         fetch(`/api/chain?chain=${slug}&action=blocks&count=8`).then((r) => r.json()),
-      ])
-        .then(([s, b]) => {
+      ]).then(([s, b]) => {
           if (s.latestBlock) setStats(s);
           if (b.blocks) setBlocks(b.blocks);
           setLoading(false);

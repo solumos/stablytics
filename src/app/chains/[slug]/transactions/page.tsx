@@ -52,6 +52,22 @@ export default function ChainTransactionsPage() {
           setLoading(false);
         })
         .catch(() => setLoading(false));
+    } else if (slug === "sui") {
+      fetch("/api/sui?action=blocks&count=5")
+        .then((r) => r.json())
+        .then((data) => {
+          const all: typeof txns = [];
+          for (const block of data.blocks || []) {
+            for (const digest of block.transactions || []) {
+              all.push({ hash: digest, blockNumber: block.number, timestamp: block.timestamp || 0 });
+              if (all.length >= 50) break;
+            }
+            if (all.length >= 50) break;
+          }
+          setTxns(all);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
     } else {
       fetch(`/api/chain?chain=${slug}&action=blocks&count=10`)
         .then((r) => r.json())

@@ -30,6 +30,14 @@ export default function ChainBlocksPage() {
       url = before
         ? `/api/tron?action=blocks&count=15&before=${before}`
         : `/api/tron?action=blocks&count=15`;
+    } else if (slug === "ton") {
+      url = before
+        ? `/api/ton?action=blocks&count=10&before=${before}`
+        : `/api/ton?action=blocks&count=10`;
+    } else if (slug === "sui") {
+      url = before
+        ? `/api/sui?action=blocks&count=10&before=${before}`
+        : `/api/sui?action=blocks&count=10`;
     } else {
       url = before
         ? `/api/chain?chain=${slug}&action=blocks&count=25&before=${before}`
@@ -50,6 +58,18 @@ export default function ChainBlocksPage() {
             number: b.number, timestamp: b.timestamp, txCount: b.txCount,
             hash: b.blockId, miner: b.witnessAddress || "",
             gasUsed: "0", gasLimit: "1", size: 0,
+          })));
+        } else if (slug === "ton") {
+          setLatestBlock(data.latestBlock || 0);
+          setBlocks((data.blocks || []).map((b: any) => ({
+            number: b.seqno, timestamp: b.genUtime, txCount: 0,
+            hash: "", miner: "", gasUsed: "0", gasLimit: "1", size: 0,
+          })));
+        } else if (slug === "sui") {
+          setLatestBlock(data.latestCheckpoint || 0);
+          setBlocks((data.blocks || []).map((b: any) => ({
+            number: b.number, timestamp: b.timestamp, txCount: b.txCount,
+            hash: b.digest || "", miner: "", gasUsed: "0", gasLimit: "1", size: 0,
           })));
         } else {
           setBlocks(data.blocks || []);

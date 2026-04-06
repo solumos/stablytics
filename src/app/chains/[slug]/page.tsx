@@ -231,32 +231,7 @@ export default function ChainStablecoinPage() {
         </Card>
       )}
 
-      {/* Quick links — always show for explorer-enabled chains */}
-      {chain.explorerEnabled && (
-        <div className="flex flex-wrap gap-3 mb-6">
-          <a
-            href={`/chains/${slug}/performance`}
-            className="rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
-            style={{ color }}
-          >
-            Network Performance →
-          </a>
-          <a
-            href={`/chains/${slug}/blocks`}
-            className="rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
-            style={{ color }}
-          >
-            {slug === "solana" ? "Slots" : "Blocks"} →
-          </a>
-          <a
-            href={`/chains/${slug}/transactions`}
-            className="rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
-            style={{ color }}
-          >
-            Transactions →
-          </a>
-        </div>
-      )}
+      {/* Explorer links available via the sub-nav tabs above */}
     </div>
   );
 }
