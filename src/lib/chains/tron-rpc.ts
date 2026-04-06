@@ -1,7 +1,15 @@
 const TRON_API = "https://api.trongrid.io";
 
+const HEADERS: Record<string, string> = {
+  "Content-Type": "application/json",
+  "User-Agent": "stablytics/1.0",
+};
+
 async function tronGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${TRON_API}${path}`, { cache: "no-store" });
+  const res = await fetch(`${TRON_API}${path}`, {
+    headers: HEADERS,
+    cache: "no-store",
+  });
   if (!res.ok) throw new Error(`TronGrid HTTP ${res.status}`);
   return res.json();
 }
@@ -9,7 +17,7 @@ async function tronGet<T>(path: string): Promise<T> {
 async function tronPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${TRON_API}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: HEADERS,
     body: JSON.stringify(body),
     cache: "no-store",
   });
@@ -132,11 +140,14 @@ export async function getBlockRange(
   from: number,
   count: number
 ): Promise<TronBlock[]> {
-  const promises: Promise<TronBlock>[] = [];
+  // Fetch sequentially to avoid TronGrid rate limits
+  const blocks: TronBlock[] = [];
   for (let i = 0; i < count; i++) {
-    promises.push(getBlockByNumber(from - i));
+    try {
+      blocks.push(await getBlockByNumber(from - i));
+    } catch { break; }
   }
-  return Promise.all(promises);
+  return blocks;
 }
 
 export async function getBlockWithTxns(
