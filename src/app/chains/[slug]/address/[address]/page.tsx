@@ -362,7 +362,28 @@ export default function ChainAddressPage() {
     } else {
       fetch(`/api/chain?chain=${slug}&action=address&address=${address}`)
         .then((r) => r.json())
-        .then((d) => { if (!d.error) setData(d); setLoading(false); })
+        .then(async (d) => {
+          if (!d.error) {
+            // For Tempo, supplement with TIP-20 token balances
+            if (slug === "tempo" && (!d.tokenBalances || d.tokenBalances.length === 0)) {
+              try {
+                const tempoData = await fetch(`/api/tempo?action=address-tokens&address=${address}`).then((r) => r.json());
+                if (tempoData.tokenBalances) {
+                  d.tokenBalances = tempoData.tokenBalances.map((tb: any) => ({
+                    contractAddress: tb.token.address,
+                    tokenBalance: tb.balance,
+                    symbol: tb.token.symbol,
+                    name: tb.token.name,
+                    decimals: tb.token.decimals,
+                    logo: tb.token.logoURI,
+                  }));
+                }
+              } catch {}
+            }
+            setData(d);
+          }
+          setLoading(false);
+        })
         .catch(() => setLoading(false));
 
       fetch(`/api/chain?chain=${slug}&action=transfers&address=${address}&direction=both`)

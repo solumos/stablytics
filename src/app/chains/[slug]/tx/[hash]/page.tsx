@@ -27,10 +27,29 @@ export default function ChainTxDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [tempoEnrich, setTempoEnrich] = useState<{
+    lane?: string;
+    functionName?: string;
+    feeTokenSymbol?: string;
+    feeTokenDecimals?: number;
+    targetTokenSymbol?: string;
+  } | null>(null);
+
   useEffect(() => {
     fetch(`/api/chain?chain=${slug}&action=tx&hash=${hash}`)
       .then((r) => r.json())
-      .then((d) => { if (d.error) setError(d.error); else setData(d); setLoading(false); })
+      .then(async (d) => {
+        if (d.error) { setError(d.error); setLoading(false); return; }
+        setData(d);
+        // Fetch Tempo enrichments
+        if (slug === "tempo") {
+          try {
+            const enriched = await fetch(`/api/tempo?action=tx-enriched&hash=${hash}`).then((r) => r.json());
+            if (!enriched.error) setTempoEnrich(enriched);
+          } catch {}
+        }
+        setLoading(false);
+      })
       .catch((e) => { setError(e.message); setLoading(false); });
   }, [slug, hash]);
 
@@ -57,10 +76,16 @@ export default function ChainTxDetailPage() {
 
   const rows: [string, React.ReactNode][] = [
     ["Hash", <span key="h" className="font-mono text-xs break-all">{tx.hash}<CopyBtn text={tx.hash} /></span>],
-    ["Status", receipt.status
-      ? <Badge key="s" variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"><CheckCircle className="mr-1 h-3 w-3" />Success</Badge>
-      : <Badge key="s" variant="outline" className="bg-red-500/10 text-red-400 border-red-500/20"><XCircle className="mr-1 h-3 w-3" />Failed</Badge>
-    ],
+    ["Status", <div key="s" className="flex items-center gap-2">
+      {receipt.status
+        ? <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"><CheckCircle className="mr-1 h-3 w-3" />Success</Badge>
+        : <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/20"><XCircle className="mr-1 h-3 w-3" />Failed</Badge>}
+      {tempoEnrich?.lane && (
+        <Badge variant="outline" className={tempoEnrich.lane === "payment" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}>
+          {tempoEnrich.lane === "payment" ? "Payment Lane" : tempoEnrich.lane === "system" ? "System" : "General Lane"}
+        </Badge>
+      )}
+    </div>],
     ["Block", <a key="b" href={`/chains/${slug}/block/${block.number}`} className="hover:underline" style={{ color }}>{block.number.toLocaleString()}</a>],
     ["Timestamp", `${formatTimestamp(block.timestamp)} (${timeAgo(block.timestamp)})`],
     ["From", <span key="f"><a href={`/chains/${slug}/address/${tx.from}`} className="font-mono text-xs break-all hover:underline" style={{ color }}>{tx.from}</a><CopyBtn text={tx.from} /></span>],
@@ -71,7 +96,11 @@ export default function ChainTxDetailPage() {
         : "Contract Creation"
     ],
     ["Value", `${formatEther(BigInt(tx.value))} ${chain?.nativeSymbol || "ETH"}`],
-    ["Fee", `${formatEther(txFee)} ${chain?.nativeSymbol || "ETH"}`],
+    ["Fee", tempoEnrich?.feeTokenSymbol
+      ? `$${(Number(txFee) / 10 ** (tempoEnrich.feeTokenDecimals || 6)).toFixed(6)} ${tempoEnrich.feeTokenSymbol}`
+      : `${formatEther(txFee)} ${chain?.nativeSymbol || "ETH"}`],
+    ...(tempoEnrich?.functionName ? [["Action", tempoEnrich.functionName] as [string, React.ReactNode]] : []),
+    ...(tempoEnrich?.targetTokenSymbol ? [["Token", tempoEnrich.targetTokenSymbol] as [string, React.ReactNode]] : []),
     ["Gas Price", formatGwei(BigInt(tx.gasPrice))],
     ["Gas", `${BigInt(receipt.gasUsed).toLocaleString()} / ${BigInt(tx.gas).toLocaleString()}`],
     ["Nonce", tx.nonce.toString()],
