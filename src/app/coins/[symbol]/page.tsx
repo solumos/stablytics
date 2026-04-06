@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowUpRight, ArrowDownRight, Shield, DollarSign } from "lucide-react";
+import { CHAINS } from "@/lib/chains/registry";
 import { DetailRowSkeleton, PageHeaderSkeleton, MetricCardSkeleton } from "@/components/skeleton";
 import { SYMBOL_TO_ISSUER, getIssuerBySlug } from "@/lib/stablecoins/issuers";
 
@@ -238,8 +239,15 @@ export default function CoinDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {coin.chains.map((chain, i) => (
-                  <TableRow key={chain.chain} className="border-border/40 hover:bg-muted/30">
+                {coin.chains.map((chain, i) => {
+                  const cfg = CHAINS.find((c) => c.name === chain.chain);
+                  const href = cfg ? `/chains/${cfg.slug}/coins/${symbol.toLowerCase()}` : undefined;
+                  return (
+                  <TableRow
+                    key={chain.chain}
+                    className="border-border/40 hover:bg-muted/30 cursor-pointer"
+                    onClick={() => { if (href) window.location.href = href; }}
+                  >
                     <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -247,7 +255,11 @@ export default function CoinDetailPage() {
                           className="h-2.5 w-2.5 rounded-full"
                           style={{ backgroundColor: CHAIN_COLORS[chain.chain] || "#6B7280" }}
                         />
-                        <span className="text-sm font-medium">{chain.chain}</span>
+                        {href ? (
+                          <a href={href} className="text-sm font-medium hover:underline" style={{ color: CHAIN_COLORS[chain.chain] }}>{chain.chain}</a>
+                        ) : (
+                          <span className="text-sm font-medium">{chain.chain}</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right text-sm font-medium">{fmtUsd(chain.supply)}</TableCell>
@@ -258,7 +270,8 @@ export default function CoinDetailPage() {
                     <TableCell className="text-right"><Change value={chain.change7d} /></TableCell>
                     <TableCell className="text-right"><Change value={chain.change30d} /></TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
