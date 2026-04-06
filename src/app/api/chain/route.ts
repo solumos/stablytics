@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { getChain } from "@/lib/chains/registry";
+import { STABLECOIN_ADDRESSES } from "@/lib/stablecoins/addresses";
+import { SYMBOL_TO_ISSUER } from "@/lib/stablecoins/issuers";
+import { getTokenMetadata } from "@/lib/chains/evm-rpc";
 import {
   getNetworkStats,
   getLatestBlockNumber,
@@ -118,7 +121,7 @@ export async function GET(request: Request) {
         );
       }
       const result = await cached(
-        `chain:${chainSlug}:addr:${address.toLowerCase()}`,
+        `chain:${chainSlug}:addr:${address.toLowerCase()}:v2`,
         async () => {
           const [balance, code, txCount, tokenBalances] = await Promise.all([
             getBalance(chain, address),
@@ -126,16 +129,79 @@ export async function GET(request: Request) {
             getTxCount(chain, address),
             getTokenBalances(chain, address),
           ]);
+
+          const isContract = code !== "0x";
+          const addrLower = address.toLowerCase();
+
+          // Check if this is a known stablecoin contract
+          let stablecoinInfo: {
+            symbol: string;
+            name?: string;
+            decimals?: number;
+            logo?: string;
+            issuerSlug?: string;
+            issuerName?: string;
+          } | null = null;
+
+          const chainAddresses = STABLECOIN_ADDRESSES[chainSlug] || {};
+          for (const [sym, addr] of Object.entries(chainAddresses)) {
+            if (addr.toLowerCase() === addrLower) {
+              const issuerSlug = SYMBOL_TO_ISSUER.get(sym);
+              let meta = null;
+              try {
+                meta = await getTokenMetadata(chain, address);
+              } catch {}
+              stablecoinInfo = {
+                symbol: sym,
+                name: meta?.name || sym,
+                decimals: meta?.decimals,
+                logo: meta?.logo || undefined,
+                issuerSlug: issuerSlug || undefined,
+              };
+              break;
+            }
+          }
+
+          // If not in our registry but is a contract, try to detect ERC20
+          let tokenMeta: {
+            name?: string;
+            symbol?: string;
+            decimals?: number;
+            logo?: string;
+          } | null = null;
+          if (isContract && !stablecoinInfo) {
+            try {
+              const meta = await getTokenMetadata(chain, address);
+              if (meta.symbol) {
+                tokenMeta = {
+                  name: meta.name,
+                  symbol: meta.symbol,
+                  decimals: meta.decimals,
+                  logo: meta.logo || undefined,
+                };
+              }
+            } catch {}
+          }
+
+          // Classify address type
+          let addressType: "stablecoin" | "contract" | "eoa" = "eoa";
+          if (stablecoinInfo) addressType = "stablecoin";
+          else if (isContract) addressType = "contract";
+
           return {
             address,
+            addressType,
             balance: balance.toString(),
-            isContract: code !== "0x",
+            isContract,
             txCount,
             nativeSymbol: chain.nativeSymbol,
+            codeSize: isContract ? Math.floor((code.length - 2) / 2) : 0,
             tokenBalances: tokenBalances.map((t) => ({
               ...t,
               tokenBalance: t.tokenBalance,
             })),
+            stablecoinInfo,
+            tokenMeta,
           };
         }
       );

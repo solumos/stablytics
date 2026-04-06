@@ -17,8 +17,17 @@ import {
   PageHeaderSkeleton,
   Skeleton,
 } from "@/components/skeleton";
-import { Copy, Check, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { formatEther, shortenAddress, shortenHash } from "@/lib/format";
+import {
+  Copy,
+  Check,
+  ArrowUpRight,
+  ArrowDownRight,
+  Shield,
+  FileCode,
+  ExternalLink,
+  Coins,
+} from "lucide-react";
+import { formatEther, shortenAddress, shortenHash, formatBytes } from "@/lib/format";
 import { getChain } from "@/lib/chains/registry";
 
 interface TokenBalance {
@@ -40,23 +49,41 @@ interface Transfer {
   category: string;
 }
 
+interface StablecoinInfo {
+  symbol: string;
+  name?: string;
+  decimals?: number;
+  logo?: string;
+  issuerSlug?: string;
+}
+
+interface TokenMeta {
+  name?: string;
+  symbol?: string;
+  decimals?: number;
+  logo?: string;
+}
+
 interface AddressData {
   address: string;
+  addressType: "stablecoin" | "contract" | "eoa";
   balance: string;
   isContract: boolean;
   txCount: number;
+  codeSize: number;
   nativeSymbol: string;
   tokenBalances: TokenBalance[];
+  stablecoinInfo: StablecoinInfo | null;
+  tokenMeta: TokenMeta | null;
 }
 
 function formatTokenBalance(hex: string, decimals: number): string {
   const raw = BigInt(hex);
-  const divisor = 10 ** decimals;
-  const num = Number(raw) / divisor;
+  const num = Number(raw) / 10 ** decimals;
   if (num >= 1e9) return `${(num / 1e9).toFixed(2)}B`;
   if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M`;
   if (num >= 1e3) return `${(num / 1e3).toFixed(2)}K`;
-  if (num < 0.01 && num > 0) return `<0.01`;
+  if (num < 0.01 && num > 0) return "<0.01";
   return num.toFixed(2);
 }
 
@@ -71,15 +98,167 @@ function CopyBtn({ text }: { text: string }) {
       }}
       className="ml-2 inline-flex text-muted-foreground hover:text-foreground"
     >
-      {copied ? (
-        <Check className="h-3.5 w-3.5 text-emerald-400" />
-      ) : (
-        <Copy className="h-3.5 w-3.5" />
-      )}
+      {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
   );
 }
 
+// ── Stablecoin Contract View ──
+function StablecoinView({
+  data,
+  slug,
+  color,
+}: {
+  data: AddressData;
+  slug: string;
+  color: string;
+}) {
+  const info = data.stablecoinInfo!;
+  const chain = getChain(slug);
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <span className="text-xs text-muted-foreground">Token</span>
+            <div className="mt-1 flex items-center gap-2">
+              {info.logo && <img src={info.logo} alt={info.symbol} className="h-6 w-6 rounded-full" />}
+              <p className="text-lg font-bold">{info.symbol}</p>
+            </div>
+            {info.name && <p className="text-xs text-muted-foreground">{info.name}</p>}
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <span className="text-xs text-muted-foreground">Decimals</span>
+            <p className="mt-1 text-lg font-bold">{info.decimals ?? "—"}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <span className="text-xs text-muted-foreground">Transactions</span>
+            <p className="mt-1 text-lg font-bold">{data.txCount.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <span className="text-xs text-muted-foreground">Contract Size</span>
+            <p className="mt-1 text-lg font-bold">{formatBytes(data.codeSize)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex flex-wrap gap-3 mb-6">
+        <a
+          href={`/chains/${slug}/coins/${info.symbol.toLowerCase()}`}
+          className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
+          style={{ color }}
+        >
+          <Coins className="h-4 w-4" />
+          {info.symbol} on {chain?.name} Dashboard
+          <ExternalLink className="h-3 w-3" />
+        </a>
+        <a
+          href={`/coins/${info.symbol.toLowerCase()}`}
+          className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
+        >
+          {info.symbol} Global Overview
+          <ExternalLink className="h-3 w-3" />
+        </a>
+        {info.issuerSlug && (
+          <a
+            href={`/issuers/${info.issuerSlug}`}
+            className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-card/50 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/30"
+          >
+            <Shield className="h-4 w-4" />
+            Issuer Details
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ── Contract View ──
+function ContractView({ data }: { data: AddressData }) {
+  const meta = data.tokenMeta;
+  return (
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+      {meta ? (
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <span className="text-xs text-muted-foreground">Token</span>
+            <div className="mt-1 flex items-center gap-2">
+              {meta.logo && <img src={meta.logo} alt={meta.symbol} className="h-6 w-6 rounded-full" />}
+              <p className="text-lg font-bold">{meta.symbol}</p>
+            </div>
+            {meta.name && <p className="text-xs text-muted-foreground">{meta.name}</p>}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <span className="text-xs text-muted-foreground">Balance</span>
+            <p className="mt-1 text-lg font-bold">
+              {formatEther(BigInt(data.balance))} {data.nativeSymbol}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+      <Card className="border-border/40 bg-card/50">
+        <CardContent className="p-5">
+          <span className="text-xs text-muted-foreground">Transactions</span>
+          <p className="mt-1 text-lg font-bold">{data.txCount.toLocaleString()}</p>
+        </CardContent>
+      </Card>
+      <Card className="border-border/40 bg-card/50">
+        <CardContent className="p-5">
+          <span className="text-xs text-muted-foreground">Contract Size</span>
+          <p className="mt-1 text-lg font-bold">{formatBytes(data.codeSize)}</p>
+        </CardContent>
+      </Card>
+      {meta?.decimals !== undefined && (
+        <Card className="border-border/40 bg-card/50">
+          <CardContent className="p-5">
+            <span className="text-xs text-muted-foreground">Decimals</span>
+            <p className="mt-1 text-lg font-bold">{meta.decimals}</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ── EOA View ──
+function EoaView({ data }: { data: AddressData }) {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+      <Card className="border-border/40 bg-card/50">
+        <CardContent className="p-5">
+          <span className="text-xs text-muted-foreground">Balance</span>
+          <p className="mt-1 text-lg font-bold">
+            {formatEther(BigInt(data.balance))} {data.nativeSymbol}
+          </p>
+        </CardContent>
+      </Card>
+      <Card className="border-border/40 bg-card/50">
+        <CardContent className="p-5">
+          <span className="text-xs text-muted-foreground">Transactions</span>
+          <p className="mt-1 text-lg font-bold">{data.txCount.toLocaleString()}</p>
+        </CardContent>
+      </Card>
+      <Card className="border-border/40 bg-card/50">
+        <CardContent className="p-5">
+          <span className="text-xs text-muted-foreground">Token Holdings</span>
+          <p className="mt-1 text-lg font-bold">{data.tokenBalances.length} tokens</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ── Main Page ──
 export default function ChainAddressPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -95,20 +274,12 @@ export default function ChainAddressPage() {
   useEffect(() => {
     fetch(`/api/chain?chain=${slug}&action=address&address=${address}`)
       .then((r) => r.json())
-      .then((d) => {
-        if (!d.error) setData(d);
-        setLoading(false);
-      })
+      .then((d) => { if (!d.error) setData(d); setLoading(false); })
       .catch(() => setLoading(false));
 
-    fetch(
-      `/api/chain?chain=${slug}&action=transfers&address=${address}&direction=both`
-    )
+    fetch(`/api/chain?chain=${slug}&action=transfers&address=${address}&direction=both`)
       .then((r) => r.json())
-      .then((d) => {
-        if (d.transfers) setTransfers(d.transfers);
-        setTransfersLoading(false);
-      })
+      .then((d) => { if (d.transfers) setTransfers(d.transfers); setTransfersLoading(false); })
       .catch(() => setTransfersLoading(false));
   }, [slug, address]);
 
@@ -116,28 +287,53 @@ export default function ChainAddressPage() {
     return (
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <PageHeaderSkeleton />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <MetricCardSkeleton />
-          <MetricCardSkeleton />
-          <MetricCardSkeleton />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => <MetricCardSkeleton key={i} />)}
         </div>
       </div>
     );
   }
 
+  if (!data) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-bold">Address Not Found</h1>
+      </div>
+    );
+  }
+
+  const typeLabel =
+    data.addressType === "stablecoin"
+      ? "Stablecoin Contract"
+      : data.addressType === "contract"
+        ? "Contract"
+        : "Address";
+
+  const typeBadge =
+    data.addressType === "stablecoin"
+      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+      : data.addressType === "contract"
+        ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+        : "";
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">
-            {data?.isContract ? "Contract" : "Address"}
-          </h1>
-          {data?.isContract && (
-            <Badge
-              variant="outline"
-              className="bg-blue-500/10 text-blue-400 border-blue-500/20"
-            >
-              Contract
+          <h1 className="text-2xl font-bold">{typeLabel}</h1>
+          {data.addressType !== "eoa" && (
+            <Badge variant="outline" className={typeBadge}>
+              {data.addressType === "stablecoin" ? (
+                <><Coins className="mr-1 h-3 w-3" />{data.stablecoinInfo?.symbol}</>
+              ) : (
+                <><FileCode className="mr-1 h-3 w-3" />Contract</>
+              )}
+            </Badge>
+          )}
+          {data.tokenMeta?.symbol && data.addressType === "contract" && (
+            <Badge variant="outline" className="border-border/50 text-muted-foreground text-xs">
+              {data.tokenMeta.symbol}
             </Badge>
           )}
         </div>
@@ -147,39 +343,15 @@ export default function ChainAddressPage() {
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
-        <Card className="border-border/40 bg-card/50">
-          <CardContent className="p-5">
-            <span className="text-xs text-muted-foreground">Balance</span>
-            <p className="mt-1 text-lg font-bold">
-              {data ? formatEther(BigInt(data.balance)) : "0"}{" "}
-              {chain?.nativeSymbol}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/40 bg-card/50">
-          <CardContent className="p-5">
-            <span className="text-xs text-muted-foreground">Transactions</span>
-            <p className="mt-1 text-lg font-bold">
-              {data?.txCount?.toLocaleString() || "0"}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/40 bg-card/50">
-          <CardContent className="p-5">
-            <span className="text-xs text-muted-foreground">
-              Token Holdings
-            </span>
-            <p className="mt-1 text-lg font-bold">
-              {data?.tokenBalances?.length || 0} tokens
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Type-specific content */}
+      {data.addressType === "stablecoin" && (
+        <StablecoinView data={data} slug={slug} color={color} />
+      )}
+      {data.addressType === "contract" && <ContractView data={data} />}
+      {data.addressType === "eoa" && <EoaView data={data} />}
 
-      {/* Token Balances */}
-      {data?.tokenBalances && data.tokenBalances.length > 0 && (
+      {/* Token balances — show for EOAs and non-token contracts */}
+      {data.addressType === "eoa" && data.tokenBalances.length > 0 && (
         <Card className="border-border/40 bg-card/50 mb-6">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -194,35 +366,18 @@ export default function ChainAddressPage() {
               >
                 <div className="flex items-center gap-3">
                   {t.logo ? (
-                    <img
-                      src={t.logo}
-                      alt={t.symbol || ""}
-                      className="h-7 w-7 rounded-full"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
+                    <img src={t.logo} alt={t.symbol || ""} className="h-7 w-7 rounded-full" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   ) : (
                     <div className="h-7 w-7 rounded-full bg-muted/50" />
                   )}
                   <div>
-                    <span className="text-sm font-medium">
-                      {t.symbol || shortenAddress(t.contractAddress)}
-                    </span>
-                    {t.name && (
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        {t.name}
-                      </span>
-                    )}
+                    <span className="text-sm font-medium">{t.symbol || shortenAddress(t.contractAddress)}</span>
+                    {t.name && <span className="ml-2 text-xs text-muted-foreground">{t.name}</span>}
                   </div>
                 </div>
                 <span className="text-sm font-medium">
-                  {t.decimals
-                    ? formatTokenBalance(t.tokenBalance, t.decimals)
-                    : "—"}{" "}
-                  <span className="text-muted-foreground">
-                    {t.symbol || ""}
-                  </span>
+                  {t.decimals ? formatTokenBalance(t.tokenBalance, t.decimals) : "—"}{" "}
+                  <span className="text-muted-foreground">{t.symbol || ""}</span>
                 </span>
               </div>
             ))}
@@ -230,7 +385,7 @@ export default function ChainAddressPage() {
         </Card>
       )}
 
-      {/* Transaction History */}
+      {/* Transfers */}
       <Card className="border-border/40 bg-card/50">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -250,79 +405,46 @@ export default function ChainAddressPage() {
             </TableHeader>
             <TableBody>
               {transfersLoading
-                ? Array.from({ length: 10 }).map((_, i) => (
+                ? Array.from({ length: 8 }).map((_, i) => (
                     <TableRow key={i} className="border-border/40">
-                      <TableCell colSpan={5}>
-                        <Skeleton className="h-4 w-full" />
-                      </TableCell>
+                      <TableCell colSpan={5}><Skeleton className="h-4 w-full" /></TableCell>
                     </TableRow>
                   ))
                 : transfers.length === 0
                   ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="text-center text-sm text-muted-foreground py-8"
-                      >
+                      <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">
                         No transfers found
                       </TableCell>
                     </TableRow>
                   )
                   : transfers.map((t, i) => {
-                      const isSent =
-                        t.from.toLowerCase() === address.toLowerCase();
+                      const isSent = t.from.toLowerCase() === address.toLowerCase();
                       return (
-                        <TableRow
-                          key={`${t.hash}-${i}`}
-                          className="border-border/40 hover:bg-muted/30"
-                        >
+                        <TableRow key={`${t.hash}-${i}`} className="border-border/40 hover:bg-muted/30">
                           <TableCell>
-                            <a
-                              href={`/chains/${slug}/tx/${t.hash}`}
-                              className="font-mono text-xs hover:underline"
-                              style={{ color }}
-                            >
+                            <a href={`/chains/${slug}/tx/${t.hash}`} className="font-mono text-xs hover:underline" style={{ color }}>
                               {shortenHash(t.hash)}
                             </a>
                           </TableCell>
                           <TableCell>
                             <Badge
                               variant="outline"
-                              className={`text-[10px] ${
-                                isSent
-                                  ? "bg-red-500/10 text-red-400 border-red-500/20"
-                                  : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                              }`}
+                              className={`text-[10px] ${isSent ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"}`}
                             >
-                              {isSent ? (
-                                <ArrowUpRight className="mr-0.5 h-2.5 w-2.5" />
-                              ) : (
-                                <ArrowDownRight className="mr-0.5 h-2.5 w-2.5" />
-                              )}
+                              {isSent ? <ArrowUpRight className="mr-0.5 h-2.5 w-2.5" /> : <ArrowDownRight className="mr-0.5 h-2.5 w-2.5" />}
                               {isSent ? "OUT" : "IN"}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <a
-                              href={`/chains/${slug}/address/${isSent ? t.to : t.from}`}
-                              className="font-mono text-xs hover:underline"
-                              style={{ color }}
-                            >
+                            <a href={`/chains/${slug}/address/${isSent ? t.to : t.from}`} className="font-mono text-xs hover:underline" style={{ color }}>
                               {shortenAddress(isSent ? t.to : t.from)}
                             </a>
                           </TableCell>
                           <TableCell className="text-right text-xs font-medium">
-                            {t.value !== null
-                              ? t.value < 0.001
-                                ? "<0.001"
-                                : t.value.toLocaleString(undefined, {
-                                    maximumFractionDigits: 4,
-                                  })
-                              : "—"}
+                            {t.value !== null ? (t.value < 0.001 ? "<0.001" : t.value.toLocaleString(undefined, { maximumFractionDigits: 4 })) : "—"}
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            {t.asset || t.category}
-                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{t.asset || t.category}</TableCell>
                         </TableRow>
                       );
                     })}
