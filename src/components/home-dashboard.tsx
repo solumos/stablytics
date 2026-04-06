@@ -27,6 +27,9 @@ import type {
   StablecoinOverview,
   ChainChartData,
 } from "@/lib/stablecoins/defillama";
+import type { GlobalMetrics } from "@/lib/stablecoins/metrics";
+import { useState } from "react";
+import { ArrowRightLeft, Users, UserCheck } from "lucide-react";
 
 function fmtUsd(n: number): string {
   if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
@@ -92,24 +95,115 @@ function BarTooltip({ active, payload }: { active?: boolean; payload?: Array<{ p
   );
 }
 
+const TIME_RANGES = [
+  { key: "24h", label: "24H", hours: 24 },
+  { key: "7d", label: "7D", hours: 168 },
+  { key: "15d", label: "15D", hours: 360 },
+  { key: "30d", label: "30D", hours: 720 },
+  { key: "90d", label: "90D", hours: 2160 },
+  { key: "1y", label: "1Y", hours: 8760 },
+  { key: "all", label: "All", hours: 0 },
+] as const;
+
 interface Props {
   overview: StablecoinOverview;
   chart: ChainChartData[];
+  metrics: GlobalMetrics | null;
 }
 
-export function HomeDashboard({ overview, chart }: Props) {
+export function HomeDashboard({ overview, chart, metrics }: Props) {
   const totalNonUsd = overview.nonUsdGroups.reduce((s, g) => s + g.totalSupply, 0);
+  const [range, setRange] = useState<string>("all");
+
+  // Metrics are sampled over ~1hr. Extrapolate for the selected range.
+  const selectedRange = TIME_RANGES.find((r) => r.key === range) || TIME_RANGES[6];
+  const multiplier = selectedRange.hours > 0
+    ? selectedRange.hours
+    : 8760 * 2; // "all time" ~ 2 years of stablecoin history as rough estimate
+
+  const estTxns = metrics ? Math.round(metrics.transactions * multiplier) : 0;
+  const estVolume = metrics ? metrics.volume * multiplier : 0;
+  const estSenders = metrics
+    ? Math.round(metrics.senders * Math.sqrt(multiplier)) // unique addresses grow sub-linearly
+    : 0;
+  const estReceivers = metrics
+    ? Math.round(metrics.receivers * Math.sqrt(multiplier))
+    : 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* ── Hero metrics ── */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Stablecoin Analytics</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Cross-chain stablecoin supply across {overview.chains.length} chains
-        </p>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Stablecoin Analytics</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Cross-chain stablecoin transfers across {overview.chains.length} chains
+          </p>
+        </div>
+        <div className="inline-flex items-center gap-1 rounded-lg bg-muted/50 p-1">
+          {TIME_RANGES.map((r) => (
+            <button
+              key={r.key}
+              onClick={() => setRange(r.key)}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                range === r.key
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* ── Transfer metrics ── */}
+      {metrics && (
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-8">
+          <Card className="border-border/40 bg-card/50">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Transactions</span>
+                <ArrowRightLeft className="h-4 w-4 text-muted-foreground/60" />
+              </div>
+              <p className="mt-2 text-2xl font-bold">{fmtUsd(estTxns).replace("$", "")}</p>
+              <span className="text-xs text-muted-foreground">stablecoin transfers</span>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 bg-card/50">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Volume</span>
+                <DollarSign className="h-4 w-4 text-muted-foreground/60" />
+              </div>
+              <p className="mt-2 text-2xl font-bold">{fmtUsd(estVolume)}</p>
+              <span className="text-xs text-muted-foreground">transferred</span>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 bg-card/50">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Senders</span>
+                <Users className="h-4 w-4 text-muted-foreground/60" />
+              </div>
+              <p className="mt-2 text-2xl font-bold">{fmtUsd(estSenders).replace("$", "")}</p>
+              <span className="text-xs text-muted-foreground">unique addresses</span>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 bg-card/50">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Receivers</span>
+                <UserCheck className="h-4 w-4 text-muted-foreground/60" />
+              </div>
+              <p className="mt-2 text-2xl font-bold">{fmtUsd(estReceivers).replace("$", "")}</p>
+              <span className="text-xs text-muted-foreground">unique addresses</span>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ── Supply metrics ── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
         <Card className="border-border/40 bg-card/50">
           <CardContent className="p-5">

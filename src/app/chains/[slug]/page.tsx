@@ -77,18 +77,39 @@ export default function ChainStablecoinPage() {
   useEffect(() => {
     fetch("/api/stablecoins")
       .then((r) => r.json())
-      .then((d) => {
+      .then(async (d) => {
         if (d.chains && chain) {
           const match = d.chains.find(
             (c: ChainStableData) => c.chain === chain.name
           );
-          if (match) setData(match);
+          if (match && match.totalSupply > 0) {
+            setData(match);
+          } else if (slug === "tempo") {
+            // Fallback: fetch Tempo tokens directly
+            try {
+              const tempoData = await fetch("/api/tempo?action=tokens").then((r) => r.json());
+              const tokens = (tempoData.tokens || []).filter((t: any) => t.totalSupply !== "0");
+              const totalSupply = tokens.reduce((s: number, t: any) => s + Number(BigInt(t.totalSupply)) / 10 ** t.decimals, 0);
+              setData({
+                chain: "Tempo",
+                totalSupply,
+                change24h: 0, change7d: 0, change30d: 0,
+                dominantStablecoin: tokens[0]?.symbol || "—",
+                dominantStablecoinPct: tokens.length > 0 ? 100 : 0,
+                topStablecoins: tokens.map((t: any) => {
+                  const supply = Number(BigInt(t.totalSupply)) / 10 ** t.decimals;
+                  return { symbol: t.symbol, supply, pct: totalSupply > 0 ? (supply / totalSupply) * 100 : 0 };
+                }),
+                stablecoinCount: tokens.length,
+              });
+            } catch {}
+          }
           setGlobalSupply(d.totalGlobalSupply || 0);
         }
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [chain]);
+  }, [chain, slug]);
 
   if (!chain) return notFound();
 
