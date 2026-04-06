@@ -20,7 +20,7 @@ export const CHAINS: ChainConfig[] = [
     slug: "ethereum",
     name: "Ethereum",
     chainId: 1,
-    rpcUrl: "https://eth.llamarpc.com",
+    rpcUrl: "https://ethereum-rpc.publicnode.com",
     explorerEnabled: true,
     color: "#627EEA",
     blockTime: 12,
