@@ -320,6 +320,46 @@ export function HomeDashboard({ overview, chart }: Props) {
           </CardContent>
         </Card>
       )}
+
+      {/* ── Yield-bearing tokens ── */}
+      {overview.yieldBearingTokens.length > 0 && (
+        <Card className="border-border/40 bg-card/50 mb-8">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Yield-Bearing Tokens</CardTitle>
+                <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-400 border-amber-500/20">
+                  {fmtUsd(overview.yieldBearingTotal)} total
+                </Badge>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Tokenized treasuries, money market funds, and yield-bearing USD tokens. Not counted in stablecoin supply totals.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {overview.yieldBearingTokens.map((token, i) => (
+              <a
+                key={`${token.symbol}-${i}`}
+                href={`/coins/${token.symbol.toLowerCase()}`}
+                className="flex items-center justify-between rounded-lg border border-border/30 px-4 py-2.5 transition-colors hover:bg-muted/20"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-muted-foreground w-5">{i + 1}</span>
+                  <div>
+                    <span className="text-sm font-medium">{token.symbol}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">{token.name}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Change value={token.change7d} />
+                  <span className="text-sm font-bold">{fmtUsd(token.supply)}</span>
+                </div>
+              </a>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

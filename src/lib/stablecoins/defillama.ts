@@ -17,9 +17,8 @@ interface ChainCirculating {
   circulatingPrevMonth: PeggedValue;
 }
 
-// Yield-bearing / tokenized treasury products to exclude.
-// These are NOT stablecoins — they're investment products that happen to be pegged.
-const YIELD_BEARING_EXCLUDE = new Set([
+// Yield-bearing / tokenized treasury products — tracked separately from stablecoins.
+const YIELD_BEARING_SYMBOLS = new Set([
   "BUIDL",   // BlackRock USD Institutional Digital Liquidity
   "USYC",    // Circle USYC
   "USDY",    // Ondo US Dollar Yield
@@ -39,7 +38,7 @@ const YIELD_BEARING_EXCLUDE = new Set([
 
 function isYieldBearing(asset: PeggedAsset): boolean {
   if (asset.yieldBearing) return true;
-  if (YIELD_BEARING_EXCLUDE.has(asset.symbol)) return true;
+  if (YIELD_BEARING_SYMBOLS.has(asset.symbol)) return true;
   return false;
 }
 
@@ -119,6 +118,8 @@ export interface StablecoinOverview {
   chains: ChainStablecoinData[];
   topStablecoins: StablecoinEntry[];
   nonUsdGroups: CurrencyGroup[];
+  yieldBearingTokens: StablecoinEntry[];
+  yieldBearingTotal: number;
   lastUpdated: number;
 }
 
@@ -351,6 +352,17 @@ export async function getStablecoinOverview(): Promise<StablecoinOverview> {
         .filter((g) => g.totalSupply > 100_000) // min $100K
         .sort((a, b) => b.totalSupply - a.totalSupply);
 
+      // Yield-bearing tokens (separate from stablecoins)
+      const yieldBearingTokens = data.peggedAssets
+        .filter((a) => isYieldBearing(a))
+        .map(makeEntry)
+        .filter((e) => e.supply > 0)
+        .sort((a, b) => b.supply - a.supply);
+
+      const yieldBearingTotal = yieldBearingTokens.reduce(
+        (s, t) => s + t.supply, 0
+      );
+
       return {
         totalGlobalSupply,
         globalChange24h:
@@ -368,6 +380,8 @@ export async function getStablecoinOverview(): Promise<StablecoinOverview> {
         chains,
         topStablecoins,
         nonUsdGroups,
+        yieldBearingTokens,
+        yieldBearingTotal,
         lastUpdated: Date.now(),
       };
     },
