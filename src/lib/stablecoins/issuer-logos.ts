@@ -12,6 +12,7 @@ const LOGOS: Record<string, string> = {
   wlfi: "/issuers/wlfi.png",
   "tron-dao": "/issuers/tron-dao.png",
   usual: "/issuers/usual.png",
+  tempo: "/issuers/tempo.png",
 };
 
 export function getIssuerLogo(slug: string): string | undefined {

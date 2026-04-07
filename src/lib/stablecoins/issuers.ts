@@ -241,6 +241,21 @@ export const ISSUERS: IssuerProfile[] = [
     regulatory: "Licensed trust company under Hong Kong TCSP regime.",
     coins: ["FDUSD"],
   },
+  {
+    slug: "tempo",
+    name: "Tempo",
+    type: "Decentralized",
+    description:
+      "Tempo is a purpose-built L1 payments blockchain incubated by Paradigm and Stripe. pathUSD is Tempo's native stablecoin, the default unit of account and fee token on the network. All TIP-20 stablecoins on Tempo (including bridged USDC.e, USDT0, EURC.e) use pathUSD as the base settlement layer.",
+    company: {
+      jurisdiction: "United States",
+      website: "https://tempo.xyz",
+    },
+    collateralization:
+      "pathUSD is backed by reserves held by Tempo's issuer infrastructure. Designed as a payment-native stablecoin with sub-second finality and stablecoin-denominated gas fees.",
+    regulatory: "Operating under Paradigm and Stripe's regulatory framework.",
+    coins: ["pathUSD"],
+  },
 ];
 
 // Build a reverse lookup: symbol -> issuer slug

@@ -19,6 +19,7 @@ const LOGOS: Record<string, string> = {
   USDf: "/logos/usdf.png",
   U: "/logos/u.jpg",
   FDUSD: "/logos/fdusd.png",
+  pathUSD: "/logos/pathusd.png",
 };
 
 // Map bridged/wrapped variants to their base token logo
