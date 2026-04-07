@@ -272,36 +272,61 @@ export function HomeDashboard() {
 
       {/* ── Top 5 sections side by side ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-8">
-        {/* Top 5 chains */}
+        {/* Top 5 chains by volume */}
         <Card className="border-border/40 bg-card/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Top 5 Chains</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Top Chains by Volume</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {overview.chains.slice(0, 5).map((chain, i) => {
-              const cfg = CHAINS.find((c) => c.name === chain.chain);
-              const pct = (chain.totalSupply / overview.totalGlobalSupply) * 100;
-              const chainLogo = cfg ? getChainLogo(cfg.slug) : undefined;
-              return (
-                <a key={chain.chain} href={cfg ? `/chains/${cfg.slug}` : "#"} className="flex items-center justify-between rounded-lg border border-border/30 px-3 py-2.5 transition-colors hover:bg-muted/20">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-muted-foreground w-4">{i + 1}</span>
-                    {chainLogo ? (
-                      <img src={chainLogo} alt={chain.chain} className="h-5 w-5 rounded-full" />
-                    ) : (
-                      <div className="h-5 w-5 rounded-full" style={{ backgroundColor: CHAIN_COLORS[chain.chain] || "#6B7280" }} />
-                    )}
-                    <div>
-                      <span className="text-sm font-medium">{chain.chain}</span>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-muted-foreground">{pct.toFixed(1)}% share</span>
-                        <Change value={chain.change7d} />
+            {(() => {
+              // Use metrics per-chain volume data, extrapolated by selected time range
+              const chainVolumes = (metrics?.chains || [])
+                .map((c) => ({
+                  ...c,
+                  estVolume: (c.volume / (c.sampleHours || 1)) * hours,
+                  estTxns: Math.round((c.transactions / (c.sampleHours || 1)) * hours),
+                }))
+                .sort((a, b) => b.estVolume - a.estVolume)
+                .slice(0, 5);
+
+              if (chainVolumes.length === 0) {
+                // Fallback to supply ranking if no metrics
+                return overview.chains.slice(0, 5).map((chain, i) => {
+                  const cfg = CHAINS.find((c) => c.name === chain.chain);
+                  const chainLogo = cfg ? getChainLogo(cfg.slug) : undefined;
+                  return (
+                    <a key={chain.chain} href={cfg ? `/chains/${cfg.slug}` : "#"} className="flex items-center justify-between rounded-lg border border-border/30 px-3 py-2.5 transition-colors hover:bg-muted/20">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-muted-foreground w-4">{i + 1}</span>
+                        {chainLogo ? <img src={chainLogo} alt={chain.chain} className="h-5 w-5 rounded-full" /> : <div className="h-5 w-5 rounded-full" style={{ backgroundColor: CHAIN_COLORS[chain.chain] || "#6B7280" }} />}
+                        <span className="text-sm font-medium">{chain.chain}</span>
+                      </div>
+                      <span className="text-sm font-bold">{fmtUsd(chain.totalSupply)}</span>
+                    </a>
+                  );
+                });
+              }
+
+              return chainVolumes.map((cv, i) => {
+                const cfg = CHAINS.find((c) => c.slug === cv.chainSlug);
+                const chainLogo = cfg ? getChainLogo(cfg.slug) : undefined;
+                return (
+                  <a key={cv.chainSlug} href={`/chains/${cv.chainSlug}`} className="flex items-center justify-between rounded-lg border border-border/30 px-3 py-2.5 transition-colors hover:bg-muted/20">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-muted-foreground w-4">{i + 1}</span>
+                      {chainLogo ? <img src={chainLogo} alt={cv.chain} className="h-5 w-5 rounded-full" /> : <div className="h-5 w-5 rounded-full" style={{ backgroundColor: CHAIN_COLORS[cv.chain] || "#6B7280" }} />}
+                      <div>
+                        <span className="text-sm font-medium">{cv.chain}</span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-muted-foreground">{fmtUsd(cv.estTxns).replace("$", "")} txns</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <span className="text-sm font-bold">{fmtUsd(chain.totalSupply)}</span>
-                </a>
-              );
+                    <span className="text-sm font-bold">{fmtUsd(cv.estVolume)}</span>
+                  </a>
+                );
+              });
+            })()}
             })}
           </CardContent>
         </Card>
