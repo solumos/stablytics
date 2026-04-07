@@ -143,9 +143,11 @@ export default function ChainStablecoinPage() {
         <h1 className="text-2xl font-bold tracking-tight">
           Stablecoins on {chain.name}
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Stablecoin supply, composition, and movement on {chain.name}
-        </p>
+        {chain.description && (
+          <p className="mt-2 text-sm text-muted-foreground max-w-3xl">
+            {chain.description}
+          </p>
+        )}
       </div>
 
       {/* Metrics */}
