@@ -77,24 +77,43 @@ export default function ChainsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/stablecoins")
-      .then((r) => r.json())
-      .then((d) => {
+    Promise.all([
+      fetch("/api/stablecoins").then((r) => r.json()),
+      fetch("/api/tempo?action=tokens").then((r) => r.json()).catch(() => ({ tokens: [] })),
+    ])
+      .then(([d, tempoData]) => {
         if (d.chains) {
-          // Add any registry chains missing from DefiLlama
           const existingNames = new Set(d.chains.map((c: ChainData) => c.chain));
+
+          // Add Tempo with real on-chain data
+          if (!existingNames.has("Tempo")) {
+            const tokens = (tempoData.tokens || [])
+              .filter((t: any) => t.totalSupply !== "0")
+              .sort((a: any, b: any) => Number(BigInt(b.totalSupply)) - Number(BigInt(a.totalSupply)));
+            const totalSupply = tokens.reduce(
+              (s: number, t: any) => s + Number(BigInt(t.totalSupply)) / 10 ** t.decimals,
+              0
+            );
+            d.chains.push({
+              chain: "Tempo",
+              totalSupply,
+              change24h: 0, change7d: 0, change30d: 0,
+              dominantStablecoin: tokens[0]?.symbol || "—",
+              dominantStablecoinPct: totalSupply > 0 && tokens[0]
+                ? (Number(BigInt(tokens[0].totalSupply)) / 10 ** tokens[0].decimals / totalSupply) * 100
+                : 0,
+              topStablecoins: [],
+              stablecoinCount: tokens.length,
+            });
+          }
+
+          // Add other missing chains
+          const updatedNames = new Set(d.chains.map((c: ChainData) => c.chain));
           for (const cfg of CHAINS) {
-            if (!existingNames.has(cfg.name) && cfg.explorerEnabled) {
+            if (!updatedNames.has(cfg.name) && cfg.explorerEnabled) {
               d.chains.push({
-                chain: cfg.name,
-                totalSupply: 0,
-                change24h: 0,
-                change7d: 0,
-                change30d: 0,
-                dominantStablecoin: "—",
-                dominantStablecoinPct: 0,
-                topStablecoins: [],
-                stablecoinCount: 0,
+                chain: cfg.name, totalSupply: 0, change24h: 0, change7d: 0, change30d: 0,
+                dominantStablecoin: "—", dominantStablecoinPct: 0, topStablecoins: [], stablecoinCount: 0,
               });
             }
           }

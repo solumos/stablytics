@@ -76,40 +76,58 @@ export default function ChainStablecoinPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/stablecoins")
-      .then((r) => r.json())
-      .then(async (d) => {
-        if (d.chains && chain) {
-          const match = d.chains.find(
-            (c: ChainStableData) => c.chain === chain.name
+    if (slug === "tempo") {
+      // Tempo: fetch directly from Tempo token list API (not DefiLlama)
+      fetch("/api/tempo?action=tokens")
+        .then((r) => r.json())
+        .then((tempoData) => {
+          const tokens = (tempoData.tokens || [])
+            .filter((t: any) => t.totalSupply !== "0")
+            .sort((a: any, b: any) => Number(BigInt(b.totalSupply)) - Number(BigInt(a.totalSupply)));
+          const totalSupply = tokens.reduce(
+            (s: number, t: any) => s + Number(BigInt(t.totalSupply)) / 10 ** t.decimals,
+            0
           );
-          if (match && match.totalSupply > 0) {
-            setData(match);
-          } else if (slug === "tempo") {
-            // Fallback: fetch Tempo tokens directly
-            try {
-              const tempoData = await fetch("/api/tempo?action=tokens").then((r) => r.json());
-              const tokens = (tempoData.tokens || []).filter((t: any) => t.totalSupply !== "0");
-              const totalSupply = tokens.reduce((s: number, t: any) => s + Number(BigInt(t.totalSupply)) / 10 ** t.decimals, 0);
-              setData({
-                chain: "Tempo",
-                totalSupply,
-                change24h: 0, change7d: 0, change30d: 0,
-                dominantStablecoin: tokens[0]?.symbol || "—",
-                dominantStablecoinPct: tokens.length > 0 ? 100 : 0,
-                topStablecoins: tokens.map((t: any) => {
-                  const supply = Number(BigInt(t.totalSupply)) / 10 ** t.decimals;
-                  return { symbol: t.symbol, supply, pct: totalSupply > 0 ? (supply / totalSupply) * 100 : 0 };
-                }),
-                stablecoinCount: tokens.length,
-              });
-            } catch {}
+          const topStablecoins = tokens.map((t: any) => {
+            const supply = Number(BigInt(t.totalSupply)) / 10 ** t.decimals;
+            return {
+              symbol: t.symbol,
+              supply,
+              pct: totalSupply > 0 ? (supply / totalSupply) * 100 : 0,
+            };
+          });
+          setData({
+            chain: "Tempo",
+            totalSupply,
+            change24h: 0,
+            change7d: 0,
+            change30d: 0,
+            dominantStablecoin: topStablecoins[0]?.symbol || "—",
+            dominantStablecoinPct: topStablecoins[0]?.pct || 0,
+            topStablecoins,
+            stablecoinCount: tokens.length,
+          });
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    } else {
+      // All other chains: use DefiLlama data
+      fetch("/api/stablecoins")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.chains && chain) {
+            const match = d.chains.find(
+              (c: ChainStableData) => c.chain === chain.name
+            );
+            if (match && match.totalSupply > 0) {
+              setData(match);
+            }
+            setGlobalSupply(d.totalGlobalSupply || 0);
           }
-          setGlobalSupply(d.totalGlobalSupply || 0);
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
   }, [chain, slug]);
 
   if (!chain) return notFound();
@@ -186,8 +204,8 @@ export default function ChainStablecoinPage() {
         <Card className="border-border/40 bg-card/50 mb-6">
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">
-              {chain.name} is not yet tracked by DefiLlama for stablecoin supply data.
-              {chain.explorerEnabled && " Use the explorer below to browse on-chain activity."}
+              No stablecoin supply data available for {chain.name} yet.
+              {chain.explorerEnabled && " Use the explorer tabs to browse on-chain activity."}
             </p>
           </CardContent>
         </Card>
