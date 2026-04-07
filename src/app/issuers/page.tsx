@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/skeleton";
 import { ISSUERS, SYMBOL_TO_ISSUER } from "@/lib/stablecoins/issuers";
-import { getCoinLogo } from "@/lib/stablecoins/logos";
+import { getIssuerLogo } from "@/lib/stablecoins/issuer-logos";
 
 interface StablecoinData {
   symbol: string;
@@ -144,13 +144,18 @@ export default function IssuersPage() {
                     >
                       <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
                       <TableCell>
-                        {issuer.slug ? (
-                          <a href={`/issuers/${issuer.slug}`} className="text-sm font-medium text-emerald-400 hover:underline">
-                            {issuer.name}
-                          </a>
-                        ) : (
-                          <span className="text-sm font-medium">{issuer.name}</span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {issuer.slug && getIssuerLogo(issuer.slug) && (
+                            <img src={getIssuerLogo(issuer.slug)} alt="" className="h-5 w-5 rounded-full" />
+                          )}
+                          {issuer.slug ? (
+                            <a href={`/issuers/${issuer.slug}`} className="text-sm font-medium text-emerald-400 hover:underline">
+                              {issuer.name}
+                            </a>
+                          ) : (
+                            <span className="text-sm font-medium">{issuer.name}</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right text-sm font-medium">
                         {fmtUsd(issuer.totalSupply)}
@@ -161,9 +166,8 @@ export default function IssuersPage() {
                             <Badge
                               key={c.symbol}
                               variant="outline"
-                              className="inline-flex items-center gap-1 text-[10px] border-border/50 text-muted-foreground"
+                              className="text-[10px] border-border/50 text-muted-foreground"
                             >
-                              {getCoinLogo(c.symbol) && <img src={getCoinLogo(c.symbol)} alt="" className="h-3 w-3 rounded-full" />}
                               {c.symbol} {fmtUsd(c.supply)}
                             </Badge>
                           ))}

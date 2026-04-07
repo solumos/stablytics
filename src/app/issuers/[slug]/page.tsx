@@ -15,6 +15,7 @@ import {
 import { ArrowUpRight, ArrowDownRight, ExternalLink, Building2, Shield, FileCheck, Scale } from "lucide-react";
 import { DetailRowSkeleton, PageHeaderSkeleton, MetricCardSkeleton } from "@/components/skeleton";
 import { getCoinLogo } from "@/lib/stablecoins/logos";
+import { getIssuerLogo } from "@/lib/stablecoins/issuer-logos";
 import { getIssuerBySlug, type IssuerProfile } from "@/lib/stablecoins/issuers";
 
 interface CoinData {
@@ -118,6 +119,7 @@ export default function IssuerDetailPage() {
           <span className="text-muted-foreground/40">/</span>
         </div>
         <div className="flex items-center gap-3">
+          {getIssuerLogo(slug) && <img src={getIssuerLogo(slug)} alt={issuer.name} className="h-8 w-8 rounded-full" />}
           <h1 className="text-2xl font-bold tracking-tight">{issuer.name}</h1>
           <Badge
             variant="outline"
