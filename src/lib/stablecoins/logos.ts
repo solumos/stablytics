@@ -21,6 +21,18 @@ const LOGOS: Record<string, string> = {
   FDUSD: "/logos/fdusd.png",
 };
 
+// Map bridged/wrapped variants to their base token logo
+const ALIASES: Record<string, string> = {
+  "USDC.e": "USDC",
+  "USDC.b": "USDC",
+  "USDbC": "USDC",
+  "EURC.e": "EURC",
+  "USDT.e": "USDT",
+  "USDT0": "USDT",
+  "frxUSD": "FRAX",
+  "crvUSD": "crvUSD",
+};
+
 export function getCoinLogo(symbol: string): string | undefined {
-  return LOGOS[symbol] || LOGOS[symbol.toUpperCase()];
+  return LOGOS[symbol] || LOGOS[symbol.toUpperCase()] || LOGOS[ALIASES[symbol] || ""];
 }
