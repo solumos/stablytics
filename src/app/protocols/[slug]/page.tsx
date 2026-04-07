@@ -5,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Globe, Coins, Layers } from "lucide-react";
 import { getProtocolBySlug } from "@/lib/stablecoins/protocols";
+import { getProtocolLogo } from "@/lib/stablecoins/protocol-logos";
 import { CHAINS } from "@/lib/chains/registry";
-import { getCoinLogo } from "@/lib/stablecoins/logos";
-import { getChainLogo } from "@/lib/chains/logos";
 
 const catColors: Record<string, string> = {
   DEX: "bg-purple-500/10 text-purple-400 border-purple-500/20",
@@ -21,25 +20,25 @@ export default function ProtocolDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
   const proto = getProtocolBySlug(slug);
+  const logo = getProtocolLogo(slug);
 
   if (!proto) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <h1 className="text-2xl font-bold">Protocol Not Found</h1>
-        <p className="mt-2 text-muted-foreground">No protocol found for &quot;{slug}&quot;.</p>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <a href="/protocols" className="text-sm text-muted-foreground hover:text-foreground">Protocols</a>
           <span className="text-muted-foreground/40">/</span>
         </div>
         <div className="flex items-center gap-3">
+          {logo && <img src={logo} alt={proto.name} className="h-8 w-8 rounded" />}
           <h1 className="text-2xl font-bold tracking-tight">{proto.name}</h1>
           <Badge variant="outline" className={catColors[proto.category]}>
             {proto.category}
@@ -50,7 +49,6 @@ export default function ProtocolDetailPage() {
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
         <Card className="border-border/40 bg-card/50">
           <CardContent className="p-5">
@@ -82,7 +80,6 @@ export default function ProtocolDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
-        {/* About */}
         <Card className="border-border/40 bg-card/50">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">About</CardTitle>
@@ -105,7 +102,6 @@ export default function ProtocolDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Features + chains + stablecoins */}
         <div className="space-y-6">
           <Card className="border-border/40 bg-card/50">
             <CardHeader className="pb-3">
@@ -134,13 +130,8 @@ export default function ProtocolDetailPage() {
                     <a
                       key={c}
                       href={cfg ? `/chains/${cfg.slug}` : "#"}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-border/30 px-2.5 py-1 text-xs font-medium transition-colors hover:bg-muted/30"
+                      className="rounded-md border border-border/30 px-2.5 py-1 text-xs font-medium transition-colors hover:bg-muted/30"
                     >
-                      {cfg && getChainLogo(cfg.slug) ? (
-                        <img src={getChainLogo(cfg.slug)} alt="" className="h-4 w-4 rounded-full" />
-                      ) : (
-                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: cfg?.color || "#6B7280" }} />
-                      )}
                       {c}
                     </a>
                   );
@@ -159,9 +150,8 @@ export default function ProtocolDetailPage() {
                   <a
                     key={s}
                     href={`/coins/${s.toLowerCase()}`}
-                    className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20"
+                    className="rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20"
                   >
-                    {getCoinLogo(s) && <img src={getCoinLogo(s)} alt="" className="h-3.5 w-3.5 rounded-full" />}
                     {s}
                   </a>
                 ))}

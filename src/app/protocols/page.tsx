@@ -4,9 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight } from "lucide-react";
 import { PROTOCOLS } from "@/lib/stablecoins/protocols";
-import { CHAINS } from "@/lib/chains/registry";
-import { getCoinLogo } from "@/lib/stablecoins/logos";
-import { getChainLogo } from "@/lib/chains/logos";
+import { getProtocolLogo } from "@/lib/stablecoins/protocol-logos";
 
 const catColors: Record<string, string> = {
   DEX: "bg-purple-500/10 text-purple-400 border-purple-500/20",
@@ -27,57 +25,38 @@ export default function ProtocolsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {PROTOCOLS.map((proto) => (
-          <a key={proto.slug} href={`/protocols/${proto.slug}`}>
-            <Card className="border-border/40 bg-card/50 transition-all hover:border-emerald-500/30 hover:bg-card/80 cursor-pointer h-full">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold">{proto.name}</h3>
-                    <Badge variant="outline" className={`text-[10px] ${catColors[proto.category]}`}>
-                      {proto.category}
-                    </Badge>
+        {PROTOCOLS.map((proto) => {
+          const logo = getProtocolLogo(proto.slug);
+          return (
+            <a key={proto.slug} href={`/protocols/${proto.slug}`}>
+              <Card className="border-border/40 bg-card/50 transition-all hover:border-emerald-500/30 hover:bg-card/80 cursor-pointer h-full">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {logo && <img src={logo} alt="" className="h-6 w-6 rounded" />}
+                      <h3 className="text-base font-semibold">{proto.name}</h3>
+                      <Badge variant="outline" className={`text-[10px] ${catColors[proto.category]}`}>
+                        {proto.category}
+                      </Badge>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {proto.description}
-                </p>
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-1">
-                    {proto.chains.slice(0, 5).map((c) => {
-                      const cfg = CHAINS.find((ch) => ch.name === c);
-                      return (
-                        <span key={c} className="inline-flex items-center gap-1 rounded bg-muted/40 px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                          {cfg && getChainLogo(cfg.slug) ? (
-                            <img src={getChainLogo(cfg.slug)} alt="" className="h-3 w-3 rounded-full" />
-                          ) : (
-                            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: cfg?.color || "#6B7280" }} />
-                          )}
-                          {c}
-                        </span>
-                      );
-                    })}
-                    {proto.chains.length > 5 && (
-                      <span className="rounded bg-muted/40 px-1.5 py-0.5 text-[10px] text-muted-foreground">+{proto.chains.length - 5}</span>
-                    )}
-                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {proto.description}
+                  </p>
                   <div className="flex flex-wrap gap-1">
                     {proto.stablecoins.slice(0, 5).map((s) => (
-                      <span key={s} className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
-                        {getCoinLogo(s) && <img src={getCoinLogo(s)} alt="" className="h-3 w-3 rounded-full" />}
-                        {s}
-                      </span>
+                      <span key={s} className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">{s}</span>
                     ))}
                     {proto.stablecoins.length > 5 && (
                       <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">+{proto.stablecoins.length - 5}</span>
                     )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </a>
-        ))}
+                </CardContent>
+              </Card>
+            </a>
+          );
+        })}
       </div>
     </div>
   );
