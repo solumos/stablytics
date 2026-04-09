@@ -9,20 +9,25 @@ export async function getCachedMetrics(): Promise<GlobalMetrics | null> {
     const supabase = getSupabase();
     if (!supabase) return null;
 
-    const { data, error } = await supabase
+    const timeout = new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), 5_000)
+    );
+
+    const query = supabase
       .from("metrics_cache")
       .select("data, updated_at")
       .eq("key", CACHE_KEY)
-      .single();
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data?.data) return null;
+        const metrics = data.data as GlobalMetrics;
+        const updatedAt = new Date(data.updated_at).getTime();
+        const age = Date.now() - updatedAt;
+        if (age > 2 * 60 * 60 * 1000) return null;
+        return metrics;
+      });
 
-    if (error || !data?.data) return null;
-
-    const metrics = data.data as GlobalMetrics;
-    const updatedAt = new Date(data.updated_at).getTime();
-    const age = Date.now() - updatedAt;
-    if (age > 2 * 60 * 60 * 1000) return null;
-
-    return metrics;
+    return await Promise.race([query, timeout]);
   } catch {
     return null;
   }

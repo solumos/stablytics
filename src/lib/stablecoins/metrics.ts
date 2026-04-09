@@ -40,66 +40,70 @@ async function sampleEvmChain(
     return emptyMetrics(chain);
   }
 
-  const rpcUrl = chain.rpcUrl;
+  try {
+    const rpcUrl = chain.rpcUrl;
 
-  // Get latest block
-  const latestHex = await rpcCall(rpcUrl, "eth_blockNumber");
-  const latest = parseInt(latestHex, 16);
+    // Get latest block
+    const latestHex = await rpcCall(rpcUrl, "eth_blockNumber");
+    const latest = parseInt(latestHex, 16);
 
-  // Sample ~1hr of blocks
-  const blocksPerHour = Math.round(3600 / (chain.blockTime || 12));
-  const from = latest - blocksPerHour;
+    // Sample ~1hr of blocks
+    const blocksPerHour = Math.round(3600 / (chain.blockTime || 12));
+    const from = latest - blocksPerHour;
 
-  // Fetch Transfer logs for top 3 stablecoins in parallel
-  const addresses = Object.values(stablecoins).slice(0, 3);
-  const results = await Promise.all(
-    addresses.map((addr) =>
-      rpcCall(rpcUrl, "eth_getLogs", [
-        {
-          fromBlock: `0x${from.toString(16)}`,
-          toBlock: `0x${latest.toString(16)}`,
-          address: addr,
-          topics: [TRANSFER_TOPIC],
-        },
-      ]).catch(() => [] as any[])
-    )
-  );
+    // Fetch Transfer logs for top 3 stablecoins in parallel
+    const addresses = Object.values(stablecoins).slice(0, 3);
+    const results = await Promise.all(
+      addresses.map((addr) =>
+        rpcCall(rpcUrl, "eth_getLogs", [
+          {
+            fromBlock: `0x${from.toString(16)}`,
+            toBlock: `0x${latest.toString(16)}`,
+            address: addr,
+            topics: [TRANSFER_TOPIC],
+          },
+        ]).catch(() => [] as any[])
+      )
+    );
 
-  const senders = new Set<string>();
-  const receivers = new Set<string>();
-  let volume = 0;
-  let txCount = 0;
+    const senders = new Set<string>();
+    const receivers = new Set<string>();
+    let volume = 0;
+    let txCount = 0;
 
-  // Max $1B per single transfer — anything higher is likely a mint/burn or internal accounting
-  const MAX_TRANSFER_USD = 1_000_000_000;
+    // Max $1B per single transfer — anything higher is likely a mint/burn or internal accounting
+    const MAX_TRANSFER_USD = 1_000_000_000;
 
-  for (const logs of results) {
-    if (!Array.isArray(logs)) continue;
-    txCount += logs.length;
-    for (const log of logs) {
-      if (log.topics?.length >= 3) {
-        senders.add(log.topics[1]);
-        receivers.add(log.topics[2]);
-        try {
-          const raw = BigInt(log.data);
-          const usd = Number(raw) / 1e6; // 6 decimals for stablecoins
-          if (usd > 0 && usd < MAX_TRANSFER_USD) {
-            volume += usd;
-          }
-        } catch {}
+    for (const logs of results) {
+      if (!Array.isArray(logs)) continue;
+      txCount += logs.length;
+      for (const log of logs) {
+        if (log.topics?.length >= 3) {
+          senders.add(log.topics[1]);
+          receivers.add(log.topics[2]);
+          try {
+            const raw = BigInt(log.data);
+            const usd = Number(raw) / 1e6; // 6 decimals for stablecoins
+            if (usd > 0 && usd < MAX_TRANSFER_USD) {
+              volume += usd;
+            }
+          } catch {}
+        }
       }
     }
-  }
 
-  return {
-    chain: chain.name,
-    chainSlug: chain.slug,
-    transactions: txCount,
-    volume,
-    senders: senders.size,
-    receivers: receivers.size,
-    sampleHours: 1,
-  };
+    return {
+      chain: chain.name,
+      chainSlug: chain.slug,
+      transactions: txCount,
+      volume,
+      senders: senders.size,
+      receivers: receivers.size,
+      sampleHours: 1,
+    };
+  } catch {
+    return emptyMetrics(chain);
+  }
 }
 
 // ── Tron sampling ──
@@ -114,6 +118,7 @@ async function sampleTron(): Promise<ChainMetrics> {
       {
         headers: { "User-Agent": "stablytics/1.0" },
         cache: "no-store",
+        signal: AbortSignal.timeout(8_000),
       }
     );
     const data = await res.json();
@@ -166,6 +171,7 @@ async function sampleSolana(): Promise<ChainMetrics> {
         params: [USDC_MINT, { limit: 200 }],
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(8_000),
     });
     const data = await res.json();
     const sigs = data.result || [];
@@ -209,6 +215,7 @@ async function rpcCall(rpcUrl: string, method: string, params?: unknown[]): Prom
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params: params || [] }),
     cache: "no-store",
+    signal: AbortSignal.timeout(8_000),
   });
   const json = await res.json();
   if (json.error) throw new Error(json.error.message);

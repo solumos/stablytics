@@ -183,7 +183,10 @@ const PEG_CURRENCY_MAP: Record<string, { currency: string; label: string }> = {
 // ── Fetchers ──
 
 async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, { next: { revalidate: 120 } });
+  const res = await fetch(url, {
+    next: { revalidate: 120 },
+    signal: AbortSignal.timeout(10_000),
+  });
   if (!res.ok) throw new Error(`DefiLlama ${res.status}: ${url}`);
   return res.json();
 }
