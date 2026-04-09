@@ -327,7 +327,6 @@ export function HomeDashboard() {
                 );
               });
             })()}
-            })}
           </CardContent>
         </Card>
 

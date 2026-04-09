@@ -4,6 +4,7 @@ interface CacheEntry<T> {
 }
 
 const store = new Map<string, CacheEntry<unknown>>();
+const pending = new Map<string, Promise<unknown>>();
 
 const DEFAULT_TTL = 15_000; // 15 seconds
 
@@ -18,7 +19,21 @@ export async function cached<T>(
     return existing.data as T;
   }
 
-  const data = await fn();
-  store.set(key, { data, expiresAt: now + ttl });
-  return data;
+  // Coalesce concurrent requests for the same key
+  const inflight = pending.get(key);
+  if (inflight) return inflight as Promise<T>;
+
+  const promise = fn()
+    .then((data) => {
+      store.set(key, { data, expiresAt: Date.now() + ttl });
+      pending.delete(key);
+      return data;
+    })
+    .catch((err) => {
+      pending.delete(key);
+      throw err;
+    });
+
+  pending.set(key, promise);
+  return promise;
 }
