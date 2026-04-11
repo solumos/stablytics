@@ -28,7 +28,8 @@ export async function getCachedMetrics(): Promise<GlobalMetrics | null> {
       });
 
     return await Promise.race([query, timeout]);
-  } catch {
+  } catch (e) {
+    console.error("[metrics-cache] getCachedMetrics failed:", e);
     return null;
   }
 }
@@ -46,5 +47,7 @@ export async function setCachedMetrics(metrics: GlobalMetrics): Promise<void> {
         data: metrics,
         updated_at: new Date().toISOString(),
       });
-  } catch {}
+  } catch (e) {
+    console.error("[metrics-cache] setCachedMetrics failed:", e);
+  }
 }
