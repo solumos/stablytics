@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowUpRight, ArrowDownRight, Shield, DollarSign } from "lucide-react";
 import { CHAINS } from "@/lib/chains/registry";
+import { getChainLogo } from "@/lib/chains/logos";
 import { getCoinLogo } from "@/lib/stablecoins/logos";
 import { DetailRowSkeleton, PageHeaderSkeleton, MetricCardSkeleton } from "@/components/skeleton";
 import { SYMBOL_TO_ISSUER, getIssuerBySlug } from "@/lib/stablecoins/issuers";
@@ -245,6 +246,7 @@ export default function CoinDetailPage() {
                 {coin.chains.map((chain, i) => {
                   const cfg = CHAINS.find((c) => c.name === chain.chain);
                   const href = cfg ? `/chains/${cfg.slug}/coins/${symbol.toLowerCase()}` : undefined;
+                  const logo = cfg ? getChainLogo(cfg.slug) : undefined;
                   return (
                   <TableRow
                     key={chain.chain}
@@ -254,10 +256,14 @@ export default function CoinDetailPage() {
                     <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: CHAIN_COLORS[chain.chain] || "#6B7280" }}
-                        />
+                        {logo ? (
+                          <img src={logo} alt={chain.chain} className="h-4 w-4 rounded-full" />
+                        ) : (
+                          <div
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: CHAIN_COLORS[chain.chain] || "#6B7280" }}
+                          />
+                        )}
                         {href ? (
                           <a href={href} className="text-sm font-medium hover:underline" style={{ color: CHAIN_COLORS[chain.chain] }}>{chain.chain}</a>
                         ) : (
