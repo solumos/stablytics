@@ -117,7 +117,7 @@ async function sampleTron(): Promise<ChainMetrics> {
       `${TRON_API}/v1/accounts/${USDT}/transactions/trc20?limit=200`,
       {
         headers: { "User-Agent": "stablytics/1.0" },
-        cache: "no-store",
+        next: { revalidate: 60 },
         signal: AbortSignal.timeout(8_000),
       }
     );
@@ -170,7 +170,7 @@ async function sampleSolana(): Promise<ChainMetrics> {
         method: "getSignaturesForAddress",
         params: [USDC_MINT, { limit: 200 }],
       }),
-      cache: "no-store",
+      next: { revalidate: 60 },
       signal: AbortSignal.timeout(8_000),
     });
     const data = await res.json();
@@ -214,7 +214,7 @@ async function rpcCall(rpcUrl: string, method: string, params?: unknown[]): Prom
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params: params || [] }),
-    cache: "no-store",
+    next: { revalidate: 60 },
     signal: AbortSignal.timeout(8_000),
   });
   const json = await res.json();
@@ -224,56 +224,63 @@ async function rpcCall(rpcUrl: string, method: string, params?: unknown[]): Prom
 
 // ── Main aggregator ──
 
+async function _computeMetrics(): Promise<GlobalMetrics> {
+  // Sample Alchemy EVM chains in parallel
+  const alchemyChains = CHAINS.filter(
+    (c) => c.explorerEnabled && c.rpcUrl.includes("alchemy.com")
+  );
+
+  const evmResults = await Promise.all(
+    alchemyChains.map((chain) => {
+      const addrs = STABLECOIN_ADDRESSES[chain.slug] || {};
+      return sampleEvmChain(chain, addrs);
+    })
+  );
+
+  // Sample non-EVM chains
+  const [tronResult, solanaResult] = await Promise.all([
+    sampleTron(),
+    sampleSolana(),
+  ]);
+
+  const chains = [...evmResults, tronResult, solanaResult].filter(
+    (c) => c.transactions > 0
+  );
+
+  // Normalize to per-hour rates
+  let txnsPerHour = 0;
+  let volumePerHour = 0;
+  let sendersPerHour = 0;
+  let receiversPerHour = 0;
+
+  for (const c of chains) {
+    const h = c.sampleHours || 1;
+    txnsPerHour += c.transactions / h;
+    volumePerHour += c.volume / h;
+    sendersPerHour += c.senders / h;
+    receiversPerHour += c.receivers / h;
+  }
+
+  return {
+    // Store as per-hour rates for clean extrapolation
+    transactions: Math.round(txnsPerHour),
+    volume: Math.round(volumePerHour),
+    senders: Math.round(sendersPerHour),
+    receivers: Math.round(receiversPerHour),
+    chains: chains.sort((a, b) => b.transactions - a.transactions),
+    sampledAt: Date.now(),
+  };
+}
+
+/** Compute metrics fresh — bypasses the in-memory cache. Used by the cron job. */
+export async function computeStablecoinMetrics(): Promise<GlobalMetrics> {
+  return _computeMetrics();
+}
+
 export async function getStablecoinMetrics(): Promise<GlobalMetrics> {
   return cached(
     "stablecoin-metrics",
-    async () => {
-      // Sample Alchemy EVM chains in parallel
-      const alchemyChains = CHAINS.filter(
-        (c) => c.explorerEnabled && c.rpcUrl.includes("alchemy.com")
-      );
-
-      const evmResults = await Promise.all(
-        alchemyChains.map((chain) => {
-          const addrs = STABLECOIN_ADDRESSES[chain.slug] || {};
-          return sampleEvmChain(chain, addrs);
-        })
-      );
-
-      // Sample non-EVM chains
-      const [tronResult, solanaResult] = await Promise.all([
-        sampleTron(),
-        sampleSolana(),
-      ]);
-
-      const chains = [...evmResults, tronResult, solanaResult].filter(
-        (c) => c.transactions > 0
-      );
-
-      // Normalize to per-hour rates
-      let txnsPerHour = 0;
-      let volumePerHour = 0;
-      let sendersPerHour = 0;
-      let receiversPerHour = 0;
-
-      for (const c of chains) {
-        const h = c.sampleHours || 1;
-        txnsPerHour += c.transactions / h;
-        volumePerHour += c.volume / h;
-        sendersPerHour += c.senders / h;
-        receiversPerHour += c.receivers / h;
-      }
-
-      return {
-        // Store as per-hour rates for clean extrapolation
-        transactions: Math.round(txnsPerHour),
-        volume: Math.round(volumePerHour),
-        senders: Math.round(sendersPerHour),
-        receivers: Math.round(receiversPerHour),
-        chains: chains.sort((a, b) => b.transactions - a.transactions),
-        sampledAt: Date.now(),
-      };
-    },
+    _computeMetrics,
     60_000 // 60s cache — these are samples, not exact counts
   );
 }

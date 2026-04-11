@@ -114,7 +114,7 @@ export function HomeDashboard() {
   useEffect(() => {
     Promise.all([
       fetch("/api/stablecoins").then((r) => r.json()).catch(() => null),
-      fetch("/api/stablecoins?chart=all").then((r) => r.json()).then((d) => d.chart || []).catch(() => []),
+      fetch("/api/stablecoins/chart/all").then((r) => r.json()).then((d) => d.chart || []).catch(() => []),
       fetch("/api/metrics").then((r) => r.json()).catch(() => null),
     ]).then(([ov, ch, met]) => {
       if (ov?.totalGlobalSupply) setOverview(ov);

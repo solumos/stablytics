@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getStablecoinMetrics } from "@/lib/stablecoins/metrics";
+import { computeStablecoinMetrics } from "@/lib/stablecoins/metrics";
 import { setCachedMetrics } from "@/lib/stablecoins/metrics-cache";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const metrics = await getStablecoinMetrics();
+    const metrics = await computeStablecoinMetrics();
     await setCachedMetrics(metrics);
 
     return NextResponse.json({

@@ -10,14 +10,14 @@ export async function GET() {
     const cached = await getCachedMetrics();
     if (cached) {
       return NextResponse.json(cached, {
-        headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+        headers: { "Cache-Control": "public, max-age=10, s-maxage=300, stale-while-revalidate=600" },
       });
     }
 
     // Fallback: compute live (slower but works without Supabase)
     const live = await getStablecoinMetrics();
     return NextResponse.json(live, {
-      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+      headers: { "Cache-Control": "public, max-age=10, s-maxage=60, stale-while-revalidate=300" },
     });
   } catch (e) {
     return NextResponse.json(
