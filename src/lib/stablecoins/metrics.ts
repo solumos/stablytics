@@ -110,16 +110,22 @@ async function sampleEvmChain(
     let volume = 0;
     let txCount = 0;
 
-    // Max $1B per single transfer — anything higher is likely a mint/burn or internal accounting
+    // Max $1B per single transfer — anything higher is likely internal accounting
     const MAX_TRANSFER_USD = 1_000_000_000;
+    // Zero-padded zero address used in mint (from=0) and burn (to=0) events
+    const ZERO_TOPIC =
+      "0x0000000000000000000000000000000000000000000000000000000000000000";
 
     for (const { addr, logs } of results) {
       if (!Array.isArray(logs)) continue;
       const decimals = getDecimals(chain.slug, addr);
       const divisor = 10 ** decimals;
-      txCount += logs.length;
       for (const log of logs) {
         if (log.topics?.length >= 3) {
+          // Skip mints and burns — they aren't real transfers between users
+          if (log.topics[1] === ZERO_TOPIC || log.topics[2] === ZERO_TOPIC)
+            continue;
+          txCount += 1;
           senders.add(log.topics[1]);
           receivers.add(log.topics[2]);
           try {
