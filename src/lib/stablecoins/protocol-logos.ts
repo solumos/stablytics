@@ -8,6 +8,8 @@ const LOGOS: Record<string, string> = {
   layerzero: "/protocols/layerzero.png",
   x402: "/protocols/x402.png",
   mpp: "/protocols/mpp.png",
+  morpho: "/protocols/morpho.png",
+  pendle: "/protocols/pendle.png",
 };
 
 export function getProtocolLogo(slug: string): string | undefined {
