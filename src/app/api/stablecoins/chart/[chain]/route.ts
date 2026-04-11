@@ -12,10 +12,8 @@ export async function GET(
   try {
     const { chain } = await params;
     const data = await getChainChart(chain);
-    // Only return last 90 days to cut payload from 1MB to ~30KB
-    const trimmed = data.slice(-90);
     return NextResponse.json(
-      { chart: trimmed },
+      { chart: data },
       {
         headers: {
           "Cache-Control":

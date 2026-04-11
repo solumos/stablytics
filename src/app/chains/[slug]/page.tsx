@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useParams, notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { getCoinLogo } from "@/lib/stablecoins/logos";
 import {
   Table,
@@ -15,7 +14,6 @@ import {
 } from "@/components/ui/table";
 import {
   MetricCardSkeleton,
-  Skeleton,
 } from "@/components/skeleton";
 import {
   ArrowUpRight,
@@ -25,6 +23,17 @@ import {
   Coins,
 } from "lucide-react";
 import { getChain } from "@/lib/chains/registry";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { ClientOnlyChart } from "@/components/client-only-chart";
+import type { ChainChartData } from "@/lib/stablecoins/defillama";
 
 interface ChainStableData {
   chain: string;
@@ -46,6 +55,31 @@ function fmtUsd(n: number): string {
   return `$${n.toFixed(0)}`;
 }
 
+function fmtUsdFull(n: number): string {
+  if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
+  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
+  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
+  return `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
+
+// Map display names back to DefiLlama chart API names (only for mismatches)
+const DISPLAY_TO_DEFILLAMA: Record<string, string> = {
+  Optimism: "OP Mainnet",
+  Hyperliquid: "Hyperliquid L1",
+  "zkSync Era": "ZKsync Era",
+};
+
+function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
+  if (!active || !payload?.length) return null;
+  const date = new Date(Number(label) * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return (
+    <div className="rounded-lg border border-border/50 bg-popover px-3 py-2 shadow-xl">
+      <p className="text-xs text-muted-foreground">{date}</p>
+      <p className="text-sm font-semibold">{fmtUsdFull(payload[0].value)}</p>
+    </div>
+  );
+}
+
 function Change({ value }: { value: number }) {
   if (value === 0) return <span className="text-muted-foreground">—</span>;
   const pos = value > 0;
@@ -57,14 +91,6 @@ function Change({ value }: { value: number }) {
   );
 }
 
-// Map DefiLlama chain names to our slugs for lookup
-const DEFILLAMA_NAME_MAP: Record<string, string> = {
-  Ethereum: "Ethereum", Tron: "Tron", BSC: "BSC", Solana: "Solana",
-  Avalanche: "Avalanche", Polygon: "Polygon", Arbitrum: "Arbitrum",
-  "OP Mainnet": "Optimism", Base: "Base", TON: "TON", Sui: "Sui",
-  Celo: "Celo", "ZKsync Era": "zkSync Era", Linea: "Linea",
-  Scroll: "Scroll", Tempo: "Tempo", Stable: "Stable",
-};
 
 export default function ChainStablecoinPage() {
   const params = useParams();
@@ -73,6 +99,7 @@ export default function ChainStablecoinPage() {
 
   const [data, setData] = useState<ChainStableData | null>(null);
   const [globalSupply, setGlobalSupply] = useState(0);
+  const [chart, setChart] = useState<ChainChartData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -130,6 +157,16 @@ export default function ChainStablecoinPage() {
     }
   }, [chain, slug]);
 
+  // Fetch historical supply chart
+  useEffect(() => {
+    if (!chain) return;
+    const defillamaName = DISPLAY_TO_DEFILLAMA[chain.name] || chain.name;
+    fetch(`/api/stablecoins/chart/${encodeURIComponent(defillamaName)}`)
+      .then((r) => r.json())
+      .then((d) => setChart((d.chart || []).filter((p: ChainChartData) => p.supply > 0)))
+      .catch(() => {});
+  }, [chain]);
+
   if (!chain) return notFound();
 
   const color = chain.color;
@@ -180,13 +217,23 @@ export default function ChainStablecoinPage() {
           <Card className="border-border/40 bg-card/50">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Supply Change</span>
+                <span className="text-xs text-muted-foreground">30d Net Flow</span>
                 <TrendingUp className="h-4 w-4 text-muted-foreground/60" />
               </div>
-              <div className="mt-2 flex items-baseline gap-3">
-                <div><Change value={data.change7d} /><span className="ml-1 text-xs text-muted-foreground">7d</span></div>
-                <div><Change value={data.change30d} /><span className="ml-1 text-xs text-muted-foreground">30d</span></div>
-              </div>
+              {(() => {
+                const netFlow = data.change30d !== 0
+                  ? data.totalSupply * data.change30d / (100 + data.change30d)
+                  : 0;
+                const pos = netFlow > 0;
+                return (
+                  <>
+                    <p className={`mt-2 text-2xl font-bold ${netFlow === 0 ? "" : pos ? "text-emerald-400" : "text-red-400"}`}>
+                      {netFlow === 0 ? "—" : `${pos ? "+" : "-"}${fmtUsd(Math.abs(netFlow))}`}
+                    </p>
+                    <Change value={data.change30d} />
+                  </>
+                );
+              })()}
             </CardContent>
           </Card>
           <Card className="border-border/40 bg-card/50">
@@ -209,6 +256,51 @@ export default function ChainStablecoinPage() {
               No stablecoin supply data available for {chain.name} yet.
               {chain.explorerEnabled && " Use the explorer tabs to browse on-chain activity."}
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Supply history chart */}
+      {chart.length > 0 && (
+        <Card className="border-border/40 bg-card/50 mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Stablecoin Supply History
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4">
+            <ClientOnlyChart>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <AreaChart data={chart}>
+                    <defs>
+                      <linearGradient id="chainSupplyGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+                        <stop offset="100%" stopColor={color} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11, fill: "#71717a" }}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v: number) => new Date(v * 1000).toLocaleDateString("en-US", { month: "short", year: "2-digit" })}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: "#71717a" }}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v: number) => fmtUsd(v)}
+                      width={65}
+                    />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Area type="monotone" dataKey="supply" stroke={color} strokeWidth={2} fill="url(#chainSupplyGrad)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </ClientOnlyChart>
           </CardContent>
         </Card>
       )}
