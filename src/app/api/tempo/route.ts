@@ -145,7 +145,7 @@ export async function GET(request: Request) {
               blockNumber: parseInt(l.blockNumber, 16),
             };
           })
-          .filter((t: any) => t.value > 0 && t.value < 1_000_000_000)
+          .filter((t: any) => t.value >= 0.01 && t.value < 1_000_000_000)
           .reverse()
           .slice(0, 50);
 
