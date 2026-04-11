@@ -8,6 +8,7 @@ import {
   getSignaturesForAddress,
   getStablecoinSignatures,
   getBalance,
+  getTransaction,
 } from "@/lib/chains/solana-rpc";
 import { getAllStablecoinAddresses } from "@/lib/stablecoins/addresses";
 import { cached } from "@/lib/cache";
@@ -50,6 +51,26 @@ export async function GET(request: Request) {
         }
       );
       return NextResponse.json(result);
+    }
+
+    if (action === "tx") {
+      const signature = searchParams.get("signature");
+      if (!signature) {
+        return NextResponse.json(
+          { error: "signature required" },
+          { status: 400 }
+        );
+      }
+      const tx = await cached(`solana:tx:${signature}`, () =>
+        getTransaction(signature)
+      );
+      if (!tx) {
+        return NextResponse.json(
+          { error: "Transaction not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(tx);
     }
 
     if (action === "address") {
