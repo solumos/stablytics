@@ -108,6 +108,32 @@ export const PROTOCOLS: ProtocolProfile[] = [
     relevance: "Stargate is the highest-volume cross-chain stablecoin bridge. LayerZero's OFT standard is used by USDT0 and other stablecoins for native multi-chain deployment.",
   },
   {
+    slug: "morpho",
+    name: "Morpho",
+    category: "Lending",
+    description: "Permissionless lending protocol with curated vaults for optimized stablecoin yields.",
+    longDescription:
+      "Morpho is a permissionless lending protocol that enables anyone to create isolated lending markets with custom risk parameters. Morpho Vaults aggregate liquidity across these markets, with curators optimizing allocations for depositors. Stablecoins (USDC, USDT, DAI) dominate both supply and borrow sides, making Morpho one of the largest stablecoin lending venues in DeFi.",
+    website: "https://morpho.org",
+    chains: ["Ethereum", "Base"],
+    stablecoins: ["USDC", "USDT", "DAI", "USDS", "USDe", "PYUSD"],
+    features: ["Isolated Markets", "Curated Vaults", "Permissionless Market Creation", "Oracle-Agnostic", "Multi-Chain"],
+    relevance: "One of the largest stablecoin lending protocols by TVL. Its curated vault model has attracted billions in USDC and USDT deposits, rivaling Compound and Aave for stablecoin lending volume.",
+  },
+  {
+    slug: "pendle",
+    name: "Pendle",
+    category: "Yield",
+    description: "Yield tokenization protocol for trading and hedging stablecoin yields.",
+    longDescription:
+      "Pendle splits yield-bearing tokens into principal and yield components, enabling users to trade future yield. Its most popular markets are stablecoin yield tokens — sDAI, sUSDe, sfrxETH-backed stablecoins, and tokenized treasury yields. Pendle allows users to lock in fixed stablecoin yields or speculate on variable rates.",
+    website: "https://pendle.finance",
+    chains: ["Ethereum", "Arbitrum", "BSC", "Optimism", "Base"],
+    stablecoins: ["USDC", "DAI", "USDe", "USDS", "FRAX", "crvUSD"],
+    features: ["Yield Tokenization", "Fixed-Rate Yields", "PT/YT Trading", "vePENDLE Governance", "Multi-Chain"],
+    relevance: "The primary venue for stablecoin yield trading. Pendle markets for sDAI, sUSDe, and tokenized treasuries represent billions in TVL, making it a key protocol for stablecoin yield management.",
+  },
+  {
     slug: "x402",
     name: "x402 Protocol",
     category: "Payments",
