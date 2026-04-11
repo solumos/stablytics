@@ -9,6 +9,44 @@ const ALCHEMY_KEY = process.env.ALCHEMY_API_KEY || "";
 const TRANSFER_TOPIC =
   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 
+// Known decimals for stablecoins that do NOT use 6 decimals.
+// Most stablecoins (USDT, USDC) use 6; DAI and BSC tokens use 18.
+const DECIMALS_18: Record<string, Set<string>> = {
+  ethereum: new Set([
+    "0x6B175474E89094C44Da98b954EedeAC495271d0F", // DAI
+    "0xdC035D45d973E3EC169d2276DDab16f1e407384F", // USDS
+    "0x4c9EDD5852cd905f086C759E8383e09bff1E68B3", // USDe
+    "0x853d955aCEf822Db058eb8505911ED77F175b99e", // FRAX
+    "0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f", // GHO
+    "0xf939E0A03FB07F59A73314E73794Be0E57ac1b4E", // crvUSD
+  ]),
+  base: new Set([
+    "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb", // DAI
+  ]),
+  arbitrum: new Set([
+    "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1", // DAI
+  ]),
+  optimism: new Set([
+    "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1", // DAI
+  ]),
+  polygon: new Set([
+    "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063", // DAI
+  ]),
+  avalanche: new Set([
+    "0xd586E7F844cEa2F87f50152665BCbc2C279D8d70", // DAI
+  ]),
+  bsc: new Set([
+    "0x55d398326f99059fF775485246999027B3197955", // USDT
+    "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d", // USDC
+    "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3", // DAI
+    "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56", // BUSD
+  ]),
+};
+
+function getDecimals(chainSlug: string, address: string): number {
+  return DECIMALS_18[chainSlug]?.has(address) ? 18 : 6;
+}
+
 // ── Types ──
 
 export interface ChainMetrics {
@@ -62,7 +100,8 @@ async function sampleEvmChain(
             address: addr,
             topics: [TRANSFER_TOPIC],
           },
-        ]).catch(() => [] as any[])
+        ]).then((logs) => ({ addr, logs }))
+          .catch(() => ({ addr, logs: [] as any[] }))
       )
     );
 
@@ -74,8 +113,10 @@ async function sampleEvmChain(
     // Max $1B per single transfer — anything higher is likely a mint/burn or internal accounting
     const MAX_TRANSFER_USD = 1_000_000_000;
 
-    for (const logs of results) {
+    for (const { addr, logs } of results) {
       if (!Array.isArray(logs)) continue;
+      const decimals = getDecimals(chain.slug, addr);
+      const divisor = 10 ** decimals;
       txCount += logs.length;
       for (const log of logs) {
         if (log.topics?.length >= 3) {
@@ -83,7 +124,7 @@ async function sampleEvmChain(
           receivers.add(log.topics[2]);
           try {
             const raw = BigInt(log.data);
-            const usd = Number(raw) / 1e6; // 6 decimals for stablecoins
+            const usd = Number(raw) / divisor;
             if (usd > 0 && usd < MAX_TRANSFER_USD) {
               volume += usd;
             }
