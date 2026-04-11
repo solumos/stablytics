@@ -2,7 +2,16 @@ import { NextResponse } from "next/server";
 import { getChain } from "@/lib/chains/registry";
 import { getAssetTransfers, getTokenMetadata } from "@/lib/chains/evm-rpc";
 import { getStablecoinAddress } from "@/lib/stablecoins/addresses";
+import { TARGET_CHAINS } from "@/lib/stablecoins/defillama";
 import { cached } from "@/lib/cache";
+
+// Reverse lookup: app display name → DefiLlama chain name
+const DISPLAY_TO_DEFILLAMA = new Map(
+  Object.entries(TARGET_CHAINS).map(([defillamaName, displayName]) => [
+    displayName.toLowerCase(),
+    defillamaName,
+  ])
+);
 
 export const revalidate = 60;
 
@@ -54,10 +63,13 @@ export async function GET(request: Request) {
             );
             if (asset) {
               // Find this chain's data using DefiLlama chain name
+              // Use TARGET_CHAINS reverse mapping first, then fall back to name matching
+              const expectedDefillamaName = DISPLAY_TO_DEFILLAMA.get(chain.name.toLowerCase());
               const defillamaChainName = Object.keys(
                 asset.chainCirculating || {}
               ).find(
                 (k) =>
+                  k === expectedDefillamaName ||
                   k.toLowerCase() === chain.name.toLowerCase() ||
                   k.toLowerCase() === chainSlug
               );
