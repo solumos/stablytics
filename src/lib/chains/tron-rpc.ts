@@ -257,3 +257,75 @@ export async function getTransactionById(
   if (!raw.txID) return null;
   return parseTx(raw, 0);
 }
+
+// ── Enhanced transaction with fee/resource info ──
+
+export interface TronFullTransaction {
+  txID: string;
+  type: string;
+  from?: string;
+  to?: string;
+  amount?: number;
+  timestamp: number;
+  blockNumber: number;
+  confirmed: boolean;
+  fee: number;
+  energyUsage: number;
+  energyFee: number;
+  netUsage: number;
+  netFee: number;
+  result: string;
+}
+
+interface RawTxInfo {
+  id?: string;
+  fee?: number;
+  blockNumber?: number;
+  blockTimeStamp?: number;
+  receipt?: {
+    energy_usage?: number;
+    energy_fee?: number;
+    net_usage?: number;
+    net_fee?: number;
+    result?: string;
+    energy_usage_total?: number;
+  };
+  contractResult?: string[];
+}
+
+async function getTransactionInfoById(txId: string): Promise<RawTxInfo | null> {
+  const raw = await tronPost<RawTxInfo>("/wallet/gettransactioninfobyid", {
+    value: txId,
+  });
+  if (!raw.id) return null;
+  return raw;
+}
+
+export async function getFullTransaction(
+  txId: string
+): Promise<TronFullTransaction | null> {
+  const [tx, info] = await Promise.all([
+    getTransactionById(txId),
+    getTransactionInfoById(txId),
+  ]);
+  if (!tx) return null;
+  const r = info?.receipt || {};
+  return {
+    txID: tx.txID,
+    type: tx.type,
+    from: tx.from,
+    to: tx.to,
+    amount: tx.amount,
+    timestamp: info?.blockTimeStamp
+      ? Math.floor(info.blockTimeStamp / 1000)
+      : tx.timestamp,
+    blockNumber: info?.blockNumber || tx.blockNumber,
+    confirmed: tx.confirmed,
+    fee: (info?.fee || 0) / 1e6,
+    energyUsage: r.energy_usage || 0,
+    energyFee: (r.energy_fee || 0) / 1e6,
+    netUsage: r.net_usage || 0,
+    netFee: (r.net_fee || 0) / 1e6,
+    result: r.result || (tx.confirmed ? "SUCCESS" : "UNKNOWN"),
+  };
+}

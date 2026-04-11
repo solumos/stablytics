@@ -18,68 +18,97 @@ function CopyBtn({ text }: { text: string }) {
   );
 }
 
-export default function ChainTxDetailPage() {
-  const params = useParams();
-  const slug = params.slug as string;
-  const hash = params.hash as string;
-  const chain = getChain(slug);
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+function SuccessBadge() {
+  return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"><CheckCircle className="mr-1 h-3 w-3" />Success</Badge>;
+}
 
-  const [tempoEnrich, setTempoEnrich] = useState<{
-    lane?: string;
-    functionName?: string;
-    feeTokenSymbol?: string;
-    feeTokenDecimals?: number;
-    targetTokenSymbol?: string;
-  } | null>(null);
+function FailedBadge() {
+  return <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/20"><XCircle className="mr-1 h-3 w-3" />Failed</Badge>;
+}
 
-  useEffect(() => {
-    fetch(`/api/chain?chain=${slug}&action=tx&hash=${hash}`)
-      .then((r) => r.json())
-      .then(async (d) => {
-        if (d.error) { setError(d.error); setLoading(false); return; }
-        setData(d);
-        // Fetch Tempo enrichments
-        if (slug === "tempo") {
-          try {
-            const enriched = await fetch(`/api/tempo?action=tx-enriched&hash=${hash}`).then((r) => r.json());
-            if (!enriched.error) setTempoEnrich(enriched);
-          } catch {}
-        }
-        setLoading(false);
-      })
-      .catch((e) => { setError(e.message); setLoading(false); });
-  }, [slug, hash]);
-
-  if (loading) return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <PageHeaderSkeleton />
-      <div className="rounded-lg border border-border/40 bg-card/50">
-        {Array.from({ length: 10 }).map((_, i) => <DetailRowSkeleton key={i} />)}
-      </div>
-    </div>
+function AddressLink({ address, slug, color }: { address: string; slug: string; color: string }) {
+  return (
+    <span>
+      <a href={`/chains/${slug}/address/${address}`} className="font-mono text-xs break-all hover:underline" style={{ color }}>{address}</a>
+      <CopyBtn text={address} />
+    </span>
   );
+}
 
-  if (error || !data) return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-bold">Transaction Not Found</h1>
-      <p className="mt-2 text-muted-foreground">{error}</p>
-    </div>
-  );
+function buildTronRows(data: any, slug: string, color: string): [string, React.ReactNode][] {
+  const rows: [string, React.ReactNode][] = [
+    ["Transaction ID", <span key="h" className="font-mono text-xs break-all">{data.txID}<CopyBtn text={data.txID} /></span>],
+    ["Status", <div key="s" className="flex items-center gap-2">
+      {data.result === "SUCCESS" ? <SuccessBadge /> : data.confirmed ? <SuccessBadge /> : <FailedBadge />}
+      <Badge variant="outline" className="text-xs border-border/50">{data.type}</Badge>
+    </div>],
+  ];
+  if (data.blockNumber) {
+    rows.push(["Block", <a key="b" href={`/chains/${slug}/block/${data.blockNumber}`} className="hover:underline" style={{ color }}>{data.blockNumber.toLocaleString()}</a>]);
+  }
+  if (data.timestamp) {
+    rows.push(["Timestamp", `${formatTimestamp(data.timestamp)} (${timeAgo(data.timestamp)})`]);
+  }
+  if (data.from) {
+    rows.push(["From", <AddressLink key="f" address={data.from} slug={slug} color={color} />]);
+  }
+  if (data.to) {
+    rows.push(["To", <AddressLink key="t" address={data.to} slug={slug} color={color} />]);
+  }
+  if (data.amount != null) {
+    rows.push(["Amount", `${data.amount} TRX`]);
+  }
+  rows.push(["Fee", `${data.fee} TRX`]);
+  if (data.energyUsage > 0 || data.energyFee > 0) {
+    rows.push(["Energy Used", data.energyUsage.toLocaleString()]);
+    rows.push(["Energy Fee", `${data.energyFee} TRX`]);
+  }
+  if (data.netUsage > 0 || data.netFee > 0) {
+    rows.push(["Bandwidth", `${data.netUsage.toLocaleString()} bytes`]);
+    rows.push(["Bandwidth Fee", `${data.netFee} TRX`]);
+  }
+  return rows;
+}
 
+function buildSolanaRows(data: any, slug: string, color: string): [string, React.ReactNode][] {
+  const rows: [string, React.ReactNode][] = [
+    ["Signature", <span key="h" className="font-mono text-xs break-all">{data.signature}<CopyBtn text={data.signature} /></span>],
+    ["Status", data.status === "success" ? <SuccessBadge key="s" /> : <FailedBadge key="s" />],
+    ["Slot", <a key="b" href={`/chains/${slug}/block/${data.slot}`} className="hover:underline" style={{ color }}>{data.slot.toLocaleString()}</a>],
+  ];
+  if (data.blockTime) {
+    rows.push(["Block Time", `${formatTimestamp(data.blockTime)} (${timeAgo(data.blockTime)})`]);
+  }
+  rows.push(["Fee", `${(data.fee / 1e9).toFixed(6)} SOL`]);
+  if (data.accounts?.length > 0) {
+    rows.push(["From (signer)", <AddressLink key="from" address={data.accounts[0]} slug={slug} color={color} />]);
+    if (data.accounts.length > 1) {
+      rows.push(["Accounts", <div key="accts" className="flex flex-col gap-1">
+        {data.accounts.slice(1, 6).map((a: string, i: number) => (
+          <AddressLink key={i} address={a} slug={slug} color={color} />
+        ))}
+        {data.accounts.length > 6 && <span className="text-xs text-muted-foreground">+{data.accounts.length - 6} more</span>}
+      </div>]);
+    }
+  }
+  return rows;
+}
+
+function buildEvmRows(
+  data: any,
+  tempoEnrich: any,
+  slug: string,
+  color: string,
+  chain: any
+): [string, React.ReactNode][] {
   const { tx, receipt, block } = data;
   const txFee = BigInt(receipt.gasUsed) * BigInt(receipt.effectiveGasPrice);
-  const color = chain?.color || "#34d399";
   const types: Record<number, string> = { 0: "Legacy", 1: "Access List", 2: "EIP-1559", 118: "Tempo" };
 
   const rows: [string, React.ReactNode][] = [
     ["Hash", <span key="h" className="font-mono text-xs break-all">{tx.hash}<CopyBtn text={tx.hash} /></span>],
     ["Status", <div key="s" className="flex items-center gap-2">
-      {receipt.status
-        ? <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"><CheckCircle className="mr-1 h-3 w-3" />Success</Badge>
-        : <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/20"><XCircle className="mr-1 h-3 w-3" />Failed</Badge>}
+      {receipt.status ? <SuccessBadge /> : <FailedBadge />}
       {tempoEnrich?.lane && (
         <Badge variant="outline" className={tempoEnrich.lane === "payment" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}>
           {tempoEnrich.lane === "payment" ? "Payment Lane" : tempoEnrich.lane === "system" ? "System" : "General Lane"}
@@ -88,9 +117,9 @@ export default function ChainTxDetailPage() {
     </div>],
     ["Block", <a key="b" href={`/chains/${slug}/block/${block.number}`} className="hover:underline" style={{ color }}>{block.number.toLocaleString()}</a>],
     ["Timestamp", `${formatTimestamp(block.timestamp)} (${timeAgo(block.timestamp)})`],
-    ["From", <span key="f"><a href={`/chains/${slug}/address/${tx.from}`} className="font-mono text-xs break-all hover:underline" style={{ color }}>{tx.from}</a><CopyBtn text={tx.from} /></span>],
+    ["From", <AddressLink key="f" address={tx.from} slug={slug} color={color} />],
     ["To", tx.to
-      ? <span key="t"><a href={`/chains/${slug}/address/${tx.to}`} className="font-mono text-xs break-all hover:underline" style={{ color }}>{tx.to}</a><CopyBtn text={tx.to} /></span>
+      ? <AddressLink key="t" address={tx.to} slug={slug} color={color} />
       : receipt.contractAddress
         ? <span key="t">Contract: <a href={`/chains/${slug}/address/${receipt.contractAddress}`} className="font-mono text-xs hover:underline" style={{ color }}>{receipt.contractAddress}</a></span>
         : "Contract Creation"
@@ -109,6 +138,85 @@ export default function ChainTxDetailPage() {
 
   if (receipt.feeToken) rows.push(["Fee Token", <a key="ft" href={`/chains/${slug}/address/${receipt.feeToken}`} className="font-mono text-xs hover:underline" style={{ color }}>{receipt.feeToken}</a>]);
 
+  return rows;
+}
+
+export default function ChainTxDetailPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const hash = params.hash as string;
+  const chain = getChain(slug);
+  const isTron = slug === "tron";
+  const isSolana = slug === "solana";
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [tempoEnrich, setTempoEnrich] = useState<{
+    lane?: string;
+    functionName?: string;
+    feeTokenSymbol?: string;
+    feeTokenDecimals?: number;
+    targetTokenSymbol?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    let url: string;
+    if (isTron) {
+      url = `/api/tron?action=tx&txId=${hash}`;
+    } else if (isSolana) {
+      url = `/api/solana?action=tx&signature=${hash}`;
+    } else {
+      url = `/api/chain?chain=${slug}&action=tx&hash=${hash}`;
+    }
+
+    fetch(url)
+      .then((r) => r.json())
+      .then(async (d) => {
+        if (d.error) { setError(d.error); setLoading(false); return; }
+        setData(d);
+        // Fetch Tempo enrichments
+        if (slug === "tempo") {
+          try {
+            const enriched = await fetch(`/api/tempo?action=tx-enriched&hash=${hash}`).then((r) => r.json());
+            if (!enriched.error) setTempoEnrich(enriched);
+          } catch {}
+        }
+        setLoading(false);
+      })
+      .catch((e) => { setError(e.message); setLoading(false); });
+  }, [slug, hash, isTron, isSolana]);
+
+  if (loading) return (
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <PageHeaderSkeleton />
+      <div className="rounded-lg border border-border/40 bg-card/50">
+        {Array.from({ length: 10 }).map((_, i) => <DetailRowSkeleton key={i} />)}
+      </div>
+    </div>
+  );
+
+  if (error || !data) return (
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <h1 className="text-2xl font-bold">Transaction Not Found</h1>
+      <p className="mt-2 text-muted-foreground">{error}</p>
+    </div>
+  );
+
+  const color = chain?.color || "#34d399";
+
+  let rows: [string, React.ReactNode][];
+  if (isTron) {
+    rows = buildTronRows(data, slug, color);
+  } else if (isSolana) {
+    rows = buildSolanaRows(data, slug, color);
+  } else {
+    rows = buildEvmRows(data, tempoEnrich, slug, color, chain);
+  }
+
+  const showEvmLogs = !isTron && !isSolana && data.receipt?.logs?.length > 0;
+  const showSolanaLogs = isSolana && data.logMessages?.length > 0;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-bold mb-6">Transaction Details</h1>
@@ -122,10 +230,16 @@ export default function ChainTxDetailPage() {
           ))}
         </CardContent>
       </Card>
-      {receipt.logs?.length > 0 && (
+      {showEvmLogs && (
         <Card className="mt-6 border-border/40 bg-card/50">
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-muted-foreground">Logs ({receipt.logs.length})</CardTitle></CardHeader>
-          <CardContent><pre className="max-h-80 overflow-auto rounded-lg bg-muted/30 p-4 text-xs font-mono">{JSON.stringify(receipt.logs, null, 2)}</pre></CardContent>
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-muted-foreground">Logs ({data.receipt.logs.length})</CardTitle></CardHeader>
+          <CardContent><pre className="max-h-80 overflow-auto rounded-lg bg-muted/30 p-4 text-xs font-mono">{JSON.stringify(data.receipt.logs, null, 2)}</pre></CardContent>
+        </Card>
+      )}
+      {showSolanaLogs && (
+        <Card className="mt-6 border-border/40 bg-card/50">
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-muted-foreground">Log Messages ({data.logMessages.length})</CardTitle></CardHeader>
+          <CardContent><pre className="max-h-80 overflow-auto rounded-lg bg-muted/30 p-4 text-xs font-mono">{data.logMessages.join("\n")}</pre></CardContent>
         </Card>
       )}
     </div>

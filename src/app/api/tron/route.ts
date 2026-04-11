@@ -5,7 +5,7 @@ import {
   getBlockWithTxns,
   getAccount,
   getAccountTransactions,
-  getTransactionById,
+  getFullTransaction,
   getAccountTrc20Transfers,
 } from "@/lib/chains/tron-rpc";
 import { cached } from "@/lib/cache";
@@ -72,7 +72,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "txId required" }, { status: 400 });
       }
       const tx = await cached(`tron:tx:${txId}`, () =>
-        getTransactionById(txId)
+        getFullTransaction(txId)
       );
       if (!tx) {
         return NextResponse.json(

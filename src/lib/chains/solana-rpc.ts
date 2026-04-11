@@ -282,6 +282,62 @@ export async function getStablecoinSignatures(
   return getSignaturesForAddress(mintAddress, limit);
 }
 
+// ── Transaction detail ──
+
+export interface SolanaTransaction {
+  signature: string;
+  slot: number;
+  blockTime: number | null;
+  fee: number;
+  err: unknown;
+  status: "success" | "failed";
+  accounts: string[];
+  preBalances: number[];
+  postBalances: number[];
+  logMessages: string[];
+}
+
+export async function getTransaction(
+  signature: string
+): Promise<SolanaTransaction | null> {
+  const raw = await rpc<{
+    slot: number;
+    blockTime: number | null;
+    meta: {
+      fee: number;
+      err: unknown;
+      preBalances: number[];
+      postBalances: number[];
+      logMessages: string[];
+    } | null;
+    transaction: {
+      message: {
+        accountKeys: (string | { pubkey: string })[];
+      };
+    };
+  } | null>("getTransaction", [
+    signature,
+    { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 },
+  ]);
+  if (!raw) return null;
+  const meta = raw.meta || { fee: 0, err: null, preBalances: [], postBalances: [], logMessages: [] };
+  const accounts = raw.transaction.message.accountKeys.map((k) =>
+    typeof k === "string" ? k : k.pubkey
+  );
+  return {
+    signature,
+    slot: raw.slot,
+    blockTime: raw.blockTime,
+    fee: meta.fee,
+    err: meta.err,
+    status: meta.err ? "failed" : "success",
+    accounts,
+    preBalances: meta.preBalances,
+    postBalances: meta.postBalances,
+    logMessages: meta.logMessages || [],
+  };
+}
+
 export async function getBalance(address: string): Promise<number> {
   const result = await rpc<{ value: number }>("getBalance", [address]);
   return result.value;
