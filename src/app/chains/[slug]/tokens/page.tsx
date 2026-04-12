@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/skeleton";
 import { shortenAddress } from "@/lib/format";
 import { getChain } from "@/lib/chains/registry";
+import { getCoinLogo } from "@/lib/stablecoins/logos";
 
 interface TokenData {
   name: string;
@@ -98,12 +99,11 @@ export default function ChainTokensPage() {
                       <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {token.logoURI && (
+                          {getCoinLogo(token.symbol) && (
                             <img
-                              src={token.logoURI}
+                              src={getCoinLogo(token.symbol)!}
                               alt={token.symbol}
                               className="h-7 w-7 rounded-full"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                             />
                           )}
                           <div>

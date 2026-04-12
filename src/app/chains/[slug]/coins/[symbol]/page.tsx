@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { shortenAddress, shortenHash } from "@/lib/format";
 import { getChain } from "@/lib/chains/registry";
+import { getChainLogo } from "@/lib/chains/logos";
+import { getCoinLogo } from "@/lib/stablecoins/logos";
 import { SYMBOL_TO_ISSUER, getIssuerBySlug } from "@/lib/stablecoins/issuers";
 
 interface OverviewData {
@@ -137,9 +139,25 @@ export default function ChainCoinPage() {
           <a href={`/coins/${symbol.toLowerCase()}`} className="hover:text-foreground">{symbol}</a>
         </div>
         <div className="flex items-center gap-3">
-          {overview?.metadata?.logo && (
-            <img src={overview.metadata.logo} alt={symbol} className="h-10 w-10 rounded-full" />
-          )}
+          {(() => {
+            const coinLogo = getCoinLogo(symbol);
+            const chainLogo = getChainLogo(slug);
+            if (coinLogo || chainLogo) {
+              return (
+                <div className="relative">
+                  {coinLogo && <img src={coinLogo} alt={symbol} className="h-10 w-10 rounded-full" />}
+                  {chainLogo && (
+                    <img
+                      src={chainLogo}
+                      alt={chain?.name ?? slug}
+                      className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-background"
+                    />
+                  )}
+                </div>
+              );
+            }
+            return null;
+          })()}
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
               {symbol} on {chain?.name}

@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { formatEther, shortenAddress, shortenHash, formatBytes } from "@/lib/format";
 import { getChain } from "@/lib/chains/registry";
+import { getCoinLogo } from "@/lib/stablecoins/logos";
 
 interface TokenBalance {
   contractAddress: string;
@@ -122,7 +123,7 @@ function StablecoinView({
           <CardContent className="p-5">
             <span className="text-xs text-muted-foreground">Token</span>
             <div className="mt-1 flex items-center gap-2">
-              {info.logo && <img src={info.logo} alt={info.symbol} className="h-6 w-6 rounded-full" />}
+              {getCoinLogo(info.symbol) && <img src={getCoinLogo(info.symbol)!} alt={info.symbol} className="h-6 w-6 rounded-full" />}
               <p className="text-lg font-bold">{info.symbol}</p>
             </div>
             {info.name && <p className="text-xs text-muted-foreground">{info.name}</p>}
@@ -190,7 +191,7 @@ function ContractView({ data }: { data: AddressData }) {
           <CardContent className="p-5">
             <span className="text-xs text-muted-foreground">Token</span>
             <div className="mt-1 flex items-center gap-2">
-              {meta.logo && <img src={meta.logo} alt={meta.symbol} className="h-6 w-6 rounded-full" />}
+              {getCoinLogo(meta.symbol) && <img src={getCoinLogo(meta.symbol)!} alt={meta.symbol} className="h-6 w-6 rounded-full" />}
               <p className="text-lg font-bold">{meta.symbol}</p>
             </div>
             {meta.name && <p className="text-xs text-muted-foreground">{meta.name}</p>}
@@ -540,8 +541,8 @@ export default function ChainAddressPage() {
                 className="flex items-center justify-between rounded-lg border border-border/30 px-4 py-2.5 hover:bg-muted/20"
               >
                 <div className="flex items-center gap-3">
-                  {t.logo ? (
-                    <img src={t.logo} alt={t.symbol || ""} className="h-7 w-7 rounded-full" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  {getCoinLogo(t.symbol || "") ? (
+                    <img src={getCoinLogo(t.symbol || "")!} alt={t.symbol || ""} className="h-7 w-7 rounded-full" />
                   ) : (
                     <div className="h-7 w-7 rounded-full bg-muted/50" />
                   )}
