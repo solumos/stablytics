@@ -191,7 +191,7 @@ function ContractView({ data }: { data: AddressData }) {
           <CardContent className="p-5">
             <span className="text-xs text-muted-foreground">Token</span>
             <div className="mt-1 flex items-center gap-2">
-              {getCoinLogo(meta.symbol) && <img src={getCoinLogo(meta.symbol)!} alt={meta.symbol} className="h-6 w-6 rounded-full" />}
+              {meta.symbol && getCoinLogo(meta.symbol) && <img src={getCoinLogo(meta.symbol)!} alt={meta.symbol} className="h-6 w-6 rounded-full" />}
               <p className="text-lg font-bold">{meta.symbol}</p>
             </div>
             {meta.name && <p className="text-xs text-muted-foreground">{meta.name}</p>}
