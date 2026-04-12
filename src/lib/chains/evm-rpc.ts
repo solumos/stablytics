@@ -395,6 +395,7 @@ export async function getAssetTransfers(
     order: params.order || "desc",
     maxCount: `0x${(params.maxCount || 25).toString(16)}`,
     withMetadata: true,
+    excludeZeroValue: true,
   };
   if (params.fromAddress) reqParams.fromAddress = params.fromAddress;
   if (params.toAddress) reqParams.toAddress = params.toAddress;
@@ -404,6 +405,11 @@ export async function getAssetTransfers(
     transfers: AssetTransfer[];
     pageKey?: string;
   }>(chain.rpcUrl, "alchemy_getAssetTransfers", [reqParams]);
+
+  // Filter out dust / address-poisoning transfers (< $0.01 for stablecoins)
+  result.transfers = result.transfers.filter(
+    (t) => t.value != null && t.value >= 0.01
+  );
 
   return result;
 }
