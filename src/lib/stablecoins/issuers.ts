@@ -209,7 +209,7 @@ export const ISSUERS: IssuerProfile[] = [
       "Transitioning from fractional-algorithmic to fully collateralized. Backed by USDC, Curve AMO positions, and Frax-owned liquidity. Target: 100% collateral ratio (CR).",
     reserves: "On-chain AMO (Algorithmic Market Operations) visible on-chain. Dashboard at facts.frax.finance.",
     regulatory: "Decentralized governance via veFXS holders. Pursuing FinCEN MSB registration.",
-    coins: ["FRAX", "frxUSD"],
+    coins: ["FRAX", "frxUSD", "FPI"],
   },
   {
     slug: "curve",
@@ -255,6 +255,144 @@ export const ISSUERS: IssuerProfile[] = [
       "pathUSD is backed by reserves held by Tempo's issuer infrastructure. Designed as a payment-native stablecoin with sub-second finality and stablecoin-denominated gas fees.",
     regulatory: "Operating under Paradigm and Stripe's regulatory framework.",
     coins: ["pathUSD"],
+  },
+  {
+    slug: "old-vector",
+    name: "Old Vector",
+    type: "Centralized",
+    description:
+      "Issuer of A7A5, a ruble-pegged stablecoin. A7A5 is backed by RUB deposits and distributes 50% of interest earnings to token holders. Sanctioned by OFAC (Aug 2025), EU, and UK for facilitating sanctions evasion.",
+    company: {
+      legalName: "Old Vector LLC",
+      jurisdiction: "Kyrgyzstan",
+      website: "https://a7a5.io",
+    },
+    collateralization:
+      "Fiat-backed 1:1 by RUB reserves held in bank deposits.",
+    regulatory:
+      "Registered as a virtual asset issuer under Kyrgyzstan's Law on Virtual Assets. Sanctioned by US (OFAC), EU, and UK.",
+    coins: ["A7A5"],
+  },
+  {
+    slug: "transfero",
+    name: "Transfero",
+    type: "Centralized",
+    description:
+      "Brazilian fintech issuing BRZ, the largest Brazilian real-pegged stablecoin. Headquartered in Zug, Switzerland with main operations in Rio de Janeiro.",
+    company: {
+      legalName: "Transfero Swiss AG",
+      jurisdiction: "Switzerland / Brazil",
+      ceo: "Thiago Cesar",
+      website: "https://transfero.com",
+    },
+    collateralization: "Fiat-backed 1:1 by BRL reserves.",
+    regulatory:
+      "Swiss-incorporated entity. Crypto assets are unregulated in Brazil.",
+    coins: ["BRZ"],
+  },
+  {
+    slug: "frankencoin",
+    name: "Frankencoin Association",
+    type: "Decentralized",
+    description:
+      "A decentralized Swiss franc stablecoin protocol using an oracle-free, auction-based mechanism. Conceived by Dr. Luzius Meisser at the University of Zurich.",
+    company: {
+      jurisdiction: "Switzerland",
+      website: "https://frankencoin.com",
+    },
+    collateralization:
+      "Overcollateralized by crypto assets (BTC, ETH, etc.). Uses auction-based price discovery and liquidation instead of external oracles. Governed by FPS (Frankencoin Pool Share) token holders.",
+    regulatory:
+      "Decentralized protocol operated by a Swiss non-profit association.",
+    coins: ["ZCHF"],
+  },
+  {
+    slug: "sg-forge",
+    name: "SG-Forge (Societe Generale)",
+    type: "Centralized",
+    description:
+      "SG-Forge is a fully integrated subsidiary of Societe Generale, a major French bank. Issues EURCV (EUR CoinVertible), a MiCA-compliant euro stablecoin for institutional and retail use.",
+    company: {
+      legalName: "SG-Forge SAS",
+      jurisdiction: "France",
+      ceo: "Jean-Marc Stenger",
+      website: "https://sgforge.com",
+    },
+    collateralization: "Fiat-backed 100% by cash reserves.",
+    regulatory:
+      "Licensed Crypto-Asset Service Provider (CASP) in France. MiCA-compliant e-money token since July 2024.",
+    coins: ["EURCV"],
+  },
+  {
+    slug: "banking-circle",
+    name: "Banking Circle",
+    type: "Centralized",
+    description:
+      "Banking Circle is a Luxembourg-licensed bank issuing EURI, the first bank-backed MiCA-compliant euro stablecoin.",
+    company: {
+      legalName: "Banking Circle S.A.",
+      jurisdiction: "Luxembourg",
+      ceo: "Anders la Cour",
+      website: "https://eurite.com",
+    },
+    collateralization: "Fiat-backed 1:1 by EUR reserves.",
+    auditor: "Top-tier auditor (attested)",
+    regulatory:
+      "Banking license from Luxembourg CSSF. First bank-backed MiCA-compliant stablecoin (e-money token).",
+    coins: ["EURI"],
+  },
+  {
+    slug: "straitsx",
+    name: "StraitsX",
+    type: "Centralized",
+    description:
+      "StraitsX issues XSGD, the leading Singapore dollar stablecoin. Part of the Fazz Financial Group. Fully backed by reserve assets and redeemable 1:1 with SGD.",
+    company: {
+      legalName: "StraitsX SGD Issuance Pte. Ltd.",
+      jurisdiction: "Singapore",
+      ceo: "Tianwei Liu",
+      website: "https://straitsx.com",
+    },
+    collateralization:
+      "Fully backed by cash, cash equivalents, and Singapore government short-term bonds.",
+    regulatory:
+      "Holds Major Payment Institution (MPI) licence from the Monetary Authority of Singapore (MAS). Travel Rule compliant.",
+    coins: ["XSGD"],
+  },
+  {
+    slug: "bcp-technologies",
+    name: "BCP Technologies",
+    type: "Centralized",
+    description:
+      "UK-regulated issuer of tGBP, a tokenised British pound stablecoin. Backed 1:1 by GBP held in segregated accounts at UK-regulated institutions.",
+    company: {
+      legalName: "BCP Technologies Ltd",
+      jurisdiction: "United Kingdom",
+      ceo: "Benoit Marzouk",
+      website: "https://tokenisedgbp.com",
+    },
+    collateralization:
+      "Fiat-backed 1:1 by GBP reserves in segregated accounts at UK-regulated financial institutions, plus short-term zero-coupon HM Treasury bonds.",
+    regulatory:
+      "FCA-registered crypto asset service provider. Completed FCA Regulated Sandbox programme.",
+    coins: ["tGBP"],
+  },
+  {
+    slug: "jpyc",
+    name: "JPYC Inc.",
+    type: "Centralized",
+    description:
+      "Issuer of JPYC, Japan's first regulated yen-pegged stablecoin. Licensed fund transfer service provider backed by Circle.",
+    company: {
+      legalName: "JPYC Inc.",
+      jurisdiction: "Japan (Tokyo)",
+      ceo: "Noritaka Okabe",
+      website: "https://jpyc.jp",
+    },
+    collateralization: "Fiat-backed 1:1 by JPY reserves.",
+    regulatory:
+      "Approved by Japan's Financial Services Agency (FSA). Fully compliant with Japan's Payment Services Act.",
+    coins: ["JPYC"],
   },
 ];
 

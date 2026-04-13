@@ -11,8 +11,7 @@ for (const [dlName, displayName] of Object.entries(TARGET_CHAINS)) {
 }
 
 interface PeggedValue {
-  peggedUSD?: number;
-  peggedEUR?: number;
+  [key: string]: number | undefined;
 }
 
 interface PeggedAsset {
@@ -39,7 +38,11 @@ interface PeggedAsset {
 }
 
 function peg(v: PeggedValue | undefined): number {
-  return v?.peggedUSD ?? v?.peggedEUR ?? 0;
+  if (!v) return 0;
+  for (const val of Object.values(v)) {
+    if (val != null) return val;
+  }
+  return 0;
 }
 
 export async function GET(request: Request) {
