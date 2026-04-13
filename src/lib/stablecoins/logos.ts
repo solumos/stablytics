@@ -24,6 +24,15 @@ const LOGOS: Record<string, string> = {
   crvUSD: "/logos/crvusd.jpg",
   FDUSD: "/logos/fdusd.png",
   pathUSD: "/logos/pathusd.png",
+  // Non-USD stablecoins
+  A7A5: "/logos/a7a5.png",
+  BRZ: "/logos/brz.png",
+  ZCHF: "/logos/zchf.png",
+  EURCV: "/logos/eurcv.png",
+  EURI: "/logos/euri.png",
+  XSGD: "/logos/xsgd.png",
+  tGBP: "/logos/tgbp.png",
+  JPYC: "/logos/jpyc.png",
 };
 
 // Map bridged/wrapped variants to their base token logo

@@ -4,10 +4,11 @@ const BASE = "https://stablecoins.llama.fi";
 
 // ── Types ──
 
+// DefiLlama returns circulating values keyed by peg type (peggedUSD, peggedEUR,
+// peggedRUB, peggedREAL, peggedCHF, etc.).  Use a flexible index signature so
+// every currency is supported without hard-coding each key.
 interface PeggedValue {
-  peggedUSD?: number;
-  peggedEUR?: number;
-  peggedVAR?: number;
+  [key: string]: number | undefined;
 }
 
 interface ChainCirculating {
@@ -159,7 +160,10 @@ function pegUsd(v: PeggedValue | undefined): number {
 
 function pegAny(v: PeggedValue | undefined): number {
   if (!v) return 0;
-  return v.peggedUSD ?? v.peggedEUR ?? v.peggedVAR ?? 0;
+  for (const val of Object.values(v)) {
+    if (val != null) return val;
+  }
+  return 0;
 }
 
 const PEG_CURRENCY_MAP: Record<string, { currency: string; label: string }> = {
