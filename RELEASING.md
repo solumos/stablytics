@@ -37,6 +37,8 @@ retained, so rollback is instant.
 
 ## Release history
 
+- `v1.1.0` — SEO: per-page metadata + canonicals, Open Graph / Twitter cards
+  with dynamic OG images, `sitemap.xml`, `robots.txt`, and JSON-LD structured data.
 - `v1.0.0` — pivot to **The Stablecoin Market Map** (752 companies; landscape +
   directory + per-company profiles).
 - `stablytics-analytics-v1` — archived snapshot of the previous on-chain

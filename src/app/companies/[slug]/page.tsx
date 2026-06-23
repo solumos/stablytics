@@ -14,6 +14,8 @@ import { companies, getCompany, validCategories } from "@/data/companies";
 import { CATEGORY_MAP, GROUP_MAP, groupForCategory } from "@/data/taxonomy";
 import { CompanyLogo } from "@/components/company-logo";
 import { CompanyCard } from "@/components/company-card";
+import { JsonLd } from "@/components/json-ld";
+import { SITE_URL, SITE_NAME } from "@/lib/site";
 
 export function generateStaticParams() {
   return companies.map((c) => ({ slug: c.slug }));
@@ -26,10 +28,37 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const c = getCompany(slug);
-  if (!c) return { title: "Company not found — Stablytics" };
+  if (!c) return { title: "Company not found" };
+  const cats = validCategories(c)
+    .map((k) => CATEGORY_MAP[k])
+    .filter(Boolean);
+  const catLabel = cats[0]?.label ?? "Stablecoin company";
+  const url = `${SITE_URL}/companies/${c.slug}`;
+  const keywords = [
+    c.name,
+    "stablecoin",
+    "stablecoin company",
+    ...cats.map((x) => x.label),
+    ...(c.stablecoins || []),
+    ...(c.keyProducts || []),
+  ];
   return {
-    title: `${c.name} — Stablytics`,
-    description: c.tagline || c.description,
+    title: `${c.name} — ${catLabel}`,
+    description: c.description,
+    keywords,
+    alternates: { canonical: `/companies/${c.slug}` },
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      title: `${c.name} · ${SITE_NAME}`,
+      description: c.description,
+      url,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${c.name} · ${SITE_NAME}`,
+      description: c.description,
+    },
   };
 }
 
@@ -90,8 +119,40 @@ export default async function CompanyPage({
     company.funding && { icon: Banknote, label: "Funding", value: company.funding },
   ].filter(Boolean) as { icon: LucideIcon; label: string; value: string }[];
 
+  const url = `${SITE_URL}/companies/${company.slug}`;
+  const sameAs = company.twitter
+    ? [
+        company.twitter.startsWith("http")
+          ? company.twitter
+          : `https://x.com/${company.twitter.replace(/^@/, "")}`,
+      ]
+    : [];
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: company.name,
+      description: company.description,
+      url: company.website || url,
+      ...(company.founded ? { foundingDate: company.founded } : {}),
+      ...(sameAs.length ? { sameAs } : {}),
+      subjectOf: { "@type": "WebPage", url },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Market Map", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "Directory", item: `${SITE_URL}/companies` },
+        { "@type": "ListItem", position: 3, name: company.name, item: url },
+      ],
+    },
+  ];
+
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <>
+      <JsonLd data={jsonLd} />
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <a
         href="/companies"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -236,6 +297,7 @@ export default async function CompanyPage({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
