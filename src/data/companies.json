@@ -4969,20 +4969,22 @@
     "name": "Checker",
     "slug": "checker",
     "categories": [
-      "crossborder",
-      "infra-orchestration"
+      "infra-orchestration",
+      "crossborder"
     ],
-    "tagline": "API connecting banks and remittance firms to stablecoin rails",
-    "description": "Checker builds infrastructure connecting banks, remittance firms and neobanks to stablecoin liquidity and payment rails via a single API, focused on Africa, Asia and Latin America corridors.",
-    "website": "https://www.checker.fi",
-    "twitter": "@checker",
-    "hq": "London, UK",
+    "tagline": "One API connecting institutions to stablecoin markets",
+    "description": "Checker is a stablecoin infrastructure company that connects exchanges, OTC desks, banks and payment providers into a single programmable network, giving financial institutions one API for stablecoin liquidity, cross-border payments, treasury and credit. It has processed over $3B in volume (about 1% of global B2B stablecoin payments) for 30+ regulated institutions.",
+    "website": "https://www.checker.finance",
+    "hq": "United States",
     "founded": "2025",
     "stage": "Seed",
-    "funding": "$8M seed (2025)",
+    "funding": "$8M pre-seed + seed (2026), led by Galaxy Ventures, Al Mada Ventures & Framework Ventures",
     "keyProducts": [
-      "Stablecoin liquidity API",
-      "Payment rails"
+      "Stablecoin liquidity network",
+      "Cross-border payments",
+      "Treasury",
+      "Credit",
+      "Single API"
     ],
     "stablecoins": [
       "USDC",
@@ -4992,8 +4994,8 @@
       "Ethereum",
       "Tron"
     ],
-    "logoDomain": "checker.fi",
-    "notable": "Recent 2025 entrant raising $8M for Africa/Asia/LatAm expansion.",
+    "logoDomain": "checker.finance",
+    "notable": "Clients include Rail (acquired by Ripple), Braza Bank and Belo; handles roughly 1% of global B2B stablecoin payment volume.",
     "status": "active",
     "logo": "/company-logos/checker.ico"
   },
