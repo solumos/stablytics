@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stablytics — The Stablecoin Market Map
 
-## Getting Started
+A living market map and directory of every company building the stablecoin
+economy: issuers, chains, infrastructure, payments, on/off-ramps, wallets,
+custody, DeFi, RWA, oracles, and compliance.
 
-First, run the development server:
+- **Landscape** (`/`) — the whole landscape on one board, grouped into 5 themes
+  and 18 categories, tiled as company logos.
+- **Directory** (`/companies`) — search and filter every company.
+- **Profiles** (`/companies/[slug]`) — a page per company (statically generated).
+
+## Stack
+
+Next.js 16 (App Router, Turbopack) · React 19 · Tailwind CSS v4 · shadcn / base-ui.
+Deployed on Vercel.
+
+## Data
+
+`src/data/companies.json` is the source of truth — one entry per company; edit it
+directly to add or correct companies (fields are in `src/data/types.ts`).
+
+- `src/data/taxonomy.ts` — the 5 groups + 18 categories (keys, labels, colors).
+- `src/data/companies.ts` — loaders + the `FEATURED` list that controls which
+  logos lead each category on the landscape.
+- `public/company-logos/` — prefetched logos, with a runtime fallback in
+  `src/components/company-logo.tsx` (DuckDuckGo icon → favicon → monogram).
+
+## Develop
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev     # http://localhost:3000
+npm run build   # production build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Releasing & deploying
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Production is the `main` branch, deployed automatically by Vercel; tag releases
+with SemVer. See **[RELEASING.md](./RELEASING.md)**.
