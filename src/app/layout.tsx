@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stablytics — Stablecoin Analytics Across Every Chain",
+  title: "Stablytics — The Stablecoin Market Map",
   description:
-    "Track stablecoin volume, supply, transfers, and adoption metrics across all major blockchains. Real-time on-chain data.",
+    "A living market map and directory of every company building the stablecoin economy — issuers, chains, payments, ramps, wallets, custody, DeFi, RWA and compliance.",
 };
 
 export default function RootLayout({

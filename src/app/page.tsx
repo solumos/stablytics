@@ -1,5 +1,5 @@
-import { HomeDashboard } from "@/components/home-dashboard";
+import { MarketMap } from "@/components/market-map";
 
 export default function Home() {
-  return <HomeDashboard />;
+  return <MarketMap />;
 }
