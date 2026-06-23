@@ -23991,5 +23991,33 @@
     "notable": "Promotes a dual-yield model where tokenized Treasuries earn government interest and on-chain DeFi yield simultaneously.",
     "status": "active",
     "logo": "/company-logos/zoth.ico"
+  },
+  {
+    "name": "Polymarket",
+    "slug": "polymarket",
+    "categories": [
+      "exchanges"
+    ],
+    "tagline": "Largest prediction market, settled in USDC",
+    "description": "Polymarket is the world’s largest prediction market, where users trade on the outcome of real-world events. Every market is collateralized and settled in USDC on Polygon, making it one of the largest stablecoin-denominated venues on-chain.",
+    "website": "https://polymarket.com",
+    "twitter": "@Polymarket",
+    "hq": "New York, USA",
+    "founded": "2020",
+    "stage": "Private",
+    "funding": "~$2.8B raised; ~$15B valuation (2026), backed by Intercontinental Exchange (ICE)",
+    "keyProducts": [
+      "Prediction markets"
+    ],
+    "stablecoins": [
+      "USDC"
+    ],
+    "chains": [
+      "Polygon"
+    ],
+    "logoDomain": "polymarket.com",
+    "notable": "All trades collateralized in USDC; backed by NYSE-owner ICE at a ~$15B valuation.",
+    "status": "active",
+    "logo": "/company-logos/polymarket.ico"
   }
 ]

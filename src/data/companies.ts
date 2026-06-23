@@ -41,7 +41,7 @@ const FEATURED: string[] = [
   "tether", "circle", "coinbase", "binance", "stripe", "paypal", "visa", "mastercard", "blackrock", "ripple", "paxos",
   "sky", "ethena", "tron", "ethereum", "solana", "base", "plasma", "tempo",
   "robinhood", "revolut", "block", "nubank", "adyen", "checkout.com", "worldpay", "nuvei",
-  "kraken", "okx", "bybit", "crypto.com", "gemini", "bitstamp",
+  "kraken", "okx", "bybit", "crypto.com", "gemini", "bitstamp", "polymarket",
   "moonpay", "ramp network", "transak", "banxa",
   "metamask", "phantom", "trust wallet", "rabby wallet", "safe", "privy", "turnkey", "dynamic", "crossmint",
   "fireblocks", "anchorage digital", "bitgo", "copper", "bny mellon", "customers bank", "cross river bank", "sygnum bank",
