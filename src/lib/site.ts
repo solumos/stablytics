@@ -1,6 +1,7 @@
 // Central site metadata used across SEO surfaces (metadata, sitemap, OG images,
-// JSON-LD). Change SITE_URL here if a custom domain is added.
-export const SITE_URL = "https://tempo-track-nu.vercel.app";
+// JSON-LD). SITE_URL is the canonical origin — everything (canonicals, sitemap,
+// robots, OG image URLs) is derived from it. No trailing slash.
+export const SITE_URL = "https://stablytics.xyz";
 export const SITE_NAME = "Stablytics";
 export const SITE_TAGLINE = "The Stablecoin Market Map";
 export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;

@@ -26,8 +26,11 @@ push to `main` and let the Git integration deploy it.
 
 ## Production
 
-- URL: <https://tempo-track-nu.vercel.app>
+- URL: <https://stablytics.xyz> (canonical). Default Vercel domain
+  <https://tempo-track-nu.vercel.app> still resolves.
 - Vercel project `tempo-track`, team `tmh-projects`.
+- Canonical origin is set in one place — `SITE_URL` in `src/lib/site.ts`. All SEO
+  surfaces (canonicals, `sitemap.xml`, `robots.txt`, OG image URLs) derive from it.
 
 ## Rollback
 
@@ -37,6 +40,8 @@ retained, so rollback is instant.
 
 ## Release history
 
+- `v1.1.1` — point canonical origin (`SITE_URL`) at the custom domain
+  `stablytics.xyz`; canonicals, sitemap, robots and OG URLs now use it.
 - `v1.1.0` — SEO: per-page metadata + canonicals, Open Graph / Twitter cards
   with dynamic OG images, `sitemap.xml`, `robots.txt`, and JSON-LD structured data.
 - `v1.0.0` — pivot to **The Stablecoin Market Map** (752 companies; landscape +
