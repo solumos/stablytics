@@ -5,41 +5,30 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { companies, searchCompanies, countByCategory } from "@/data/companies";
 import { GROUPS, categoriesForGroup, CATEGORY_MAP } from "@/data/taxonomy";
+import type { Company } from "@/data/types";
 import { CompanyCard } from "./company-card";
 import { cn } from "@/lib/utils";
 
 const COUNTS = countByCategory();
 
-export function Directory() {
-  const sp = useSearchParams();
-  const router = useRouter();
-  const [q, setQ] = useState(() => sp.get("q") || "");
-  const [activeCat, setActiveCat] = useState<string | null>(() => sp.get("category"));
-
-  // Reconcile with the URL when it changes externally (e.g. header search,
-  // or a category link from the landscape map). setState bails on equal values.
-  useEffect(() => {
-    const urlQ = sp.get("q") || "";
-    const urlCat = sp.get("category");
-    setQ((prev) => (prev === urlQ ? prev : urlQ));
-    setActiveCat((prev) => (prev === urlCat ? prev : urlCat));
-  }, [sp]);
-
-  function setCategory(next: string | null) {
-    setActiveCat(next);
-    const params = new URLSearchParams();
-    if (q.trim()) params.set("q", q.trim());
-    if (next) params.set("category", next);
-    const qs = params.toString();
-    router.replace(qs ? `/companies?${qs}` : "/companies", { scroll: false });
-  }
-
-  const results = useMemo(() => {
-    let list = q.trim() ? searchCompanies(q) : companies;
-    if (activeCat) list = list.filter((c) => c.categories?.includes(activeCat));
-    return list;
-  }, [q, activeCat]);
-
+/**
+ * Pure view shared by the interactive directory and the static fallback.
+ * Handlers are optional so the same markup can be prerendered into the
+ * page's static HTML (see DirectoryFallback).
+ */
+function DirectoryView({
+  q,
+  activeCat,
+  results,
+  onQChange,
+  onCategory,
+}: {
+  q: string;
+  activeCat: string | null;
+  results: Company[];
+  onQChange?: (q: string) => void;
+  onCategory?: (key: string | null) => void;
+}) {
   const activeLabel = activeCat ? CATEGORY_MAP[activeCat]?.label : null;
 
   return (
@@ -58,12 +47,13 @@ export function Directory() {
           type="text"
           placeholder="Search by name, product, stablecoin, location…"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          readOnly={!onQChange}
+          onChange={onQChange ? (e) => onQChange(e.target.value) : undefined}
           className="h-11 w-full rounded-xl border border-border/50 bg-muted/30 pl-10 pr-10 text-sm placeholder:text-muted-foreground/60 focus:border-emerald-500/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/20"
         />
         {q && (
           <button
-            onClick={() => setQ("")}
+            onClick={() => onQChange?.("")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             aria-label="Clear search"
           >
@@ -76,7 +66,7 @@ export function Directory() {
       <div className="mb-6 space-y-3">
         <div className="flex flex-wrap items-center gap-1.5">
           <button
-            onClick={() => setCategory(null)}
+            onClick={() => onCategory?.(null)}
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
               !activeCat
@@ -101,7 +91,7 @@ export function Directory() {
               return (
                 <button
                   key={cat.key}
-                  onClick={() => setCategory(active ? null : cat.key)}
+                  onClick={() => onCategory?.(active ? null : cat.key)}
                   className="rounded-full border px-2.5 py-1 text-xs font-medium transition-colors"
                   style={
                     active
@@ -136,5 +126,56 @@ export function Directory() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Default-state directory (all companies, no filters) with no interactivity.
+ * Used as the Suspense fallback around <Directory /> so the full listing is
+ * prerendered into the page's static HTML; React swaps in the interactive
+ * version (identical markup for the default state) at hydration.
+ */
+export function DirectoryFallback() {
+  return <DirectoryView q="" activeCat={null} results={companies} />;
+}
+
+export function Directory() {
+  const sp = useSearchParams();
+  const router = useRouter();
+  const [q, setQ] = useState(() => sp.get("q") || "");
+  const [activeCat, setActiveCat] = useState<string | null>(() => sp.get("category"));
+
+  // Reconcile with the URL when it changes externally (e.g. header search,
+  // or a category link from the landscape map). setState bails on equal values.
+  useEffect(() => {
+    const urlQ = sp.get("q") || "";
+    const urlCat = sp.get("category");
+    setQ((prev) => (prev === urlQ ? prev : urlQ));
+    setActiveCat((prev) => (prev === urlCat ? prev : urlCat));
+  }, [sp]);
+
+  function setCategory(next: string | null) {
+    setActiveCat(next);
+    const params = new URLSearchParams();
+    if (q.trim()) params.set("q", q.trim());
+    if (next) params.set("category", next);
+    const qs = params.toString();
+    router.replace(qs ? `/companies?${qs}` : "/companies", { scroll: false });
+  }
+
+  const results = useMemo(() => {
+    let list = q.trim() ? searchCompanies(q) : companies;
+    if (activeCat) list = list.filter((c) => c.categories?.includes(activeCat));
+    return list;
+  }, [q, activeCat]);
+
+  return (
+    <DirectoryView
+      q={q}
+      activeCat={activeCat}
+      results={results}
+      onQChange={setQ}
+      onCategory={setCategory}
+    />
   );
 }

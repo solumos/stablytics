@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Directory } from "@/components/directory";
+import { Directory, DirectoryFallback } from "@/components/directory";
 import { JsonLd } from "@/components/json-ld";
 import { companies } from "@/data/companies";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
@@ -35,7 +35,10 @@ export default function CompaniesPage() {
   return (
     <>
       <JsonLd data={jsonLd} />
-      <Suspense>
+      {/* useSearchParams forces <Directory /> below this boundary out of the
+          static prerender; the fallback carries the full default-state listing
+          so the directory is server-rendered into the static HTML. */}
+      <Suspense fallback={<DirectoryFallback />}>
         <Directory />
       </Suspense>
     </>
