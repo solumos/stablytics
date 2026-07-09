@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { Layers } from "lucide-react";
+import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
 
 export default function NotFound() {
   return (
@@ -12,18 +14,18 @@ export default function NotFound() {
         in the map yet.
       </p>
       <div className="mt-6 flex gap-3">
-        <a
+        <HoverPrefetchLink
           href="/"
           className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
         >
           Market Map
-        </a>
-        <a
+        </HoverPrefetchLink>
+        <Link
           href="/companies"
           className="rounded-lg border border-border/60 px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/50"
         >
           Browse Directory
-        </a>
+        </Link>
       </div>
     </div>
   );

@@ -36,3 +36,22 @@ export interface Company {
   /** "active" | "acquired" | "defunct" */
   status?: string;
 }
+
+/**
+ * The subset of Company shipped to the client for the directory
+ * (cards + search). Must stay in sync with SLIM_FIELDS in
+ * scripts/gen-slim-companies.mjs: using a field here that isn't in
+ * SLIM_FIELDS typechecks but renders undefined, so change both together.
+ */
+export type CompanySummary = Pick<
+  Company,
+  | "name"
+  | "slug"
+  | "categories"
+  | "tagline"
+  | "description"
+  | "logo"
+  | "hq"
+  | "stablecoins"
+  | "keyProducts"
+>;

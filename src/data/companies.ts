@@ -1,10 +1,14 @@
+// Full dataset — server-only so it can never leak into a client bundle
+// (the directory's client code uses the slim src/data/companies.client.ts).
+import "server-only";
 import rawData from "./companies.json";
 import type { Company } from "./types";
 import { CATEGORY_MAP } from "./taxonomy";
 
 export const companies: Company[] = (rawData as Company[])
   .slice()
-  .sort((a, b) => a.name.localeCompare(b.name));
+  // Locale pinned to match src/data/companies.client.ts ordering.
+  .sort((a, b) => a.name.localeCompare(b.name, "en"));
 
 const BY_SLUG = new Map(companies.map((c) => [c.slug, c]));
 
@@ -21,16 +25,6 @@ export function validCategories(c: Company): string[] {
 
 export function companiesByCategory(key: string): Company[] {
   return companies.filter((c) => c.categories?.includes(key));
-}
-
-export function countByCategory(): Record<string, number> {
-  const counts: Record<string, number> = {};
-  for (const c of companies) {
-    for (const k of c.categories || []) {
-      counts[k] = (counts[k] || 0) + 1;
-    }
-  }
-  return counts;
 }
 
 // --- Prominence ranking (for the landscape map ordering + capping) ---
@@ -83,16 +77,3 @@ export function topByCategory(key: string, limit?: number): Company[] {
   return limit ? list.slice(0, limit) : list;
 }
 
-export function searchCompanies(q: string): Company[] {
-  const term = q.trim().toLowerCase();
-  if (!term) return companies;
-  return companies.filter(
-    (c) =>
-      c.name.toLowerCase().includes(term) ||
-      c.tagline?.toLowerCase().includes(term) ||
-      c.description?.toLowerCase().includes(term) ||
-      c.hq?.toLowerCase().includes(term) ||
-      c.stablecoins?.some((s) => s.toLowerCase().includes(term)) ||
-      c.keyProducts?.some((p) => p.toLowerCase().includes(term))
-  );
-}

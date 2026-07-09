@@ -1,15 +1,16 @@
-import type { Company } from "@/data/types";
+import type { CompanySummary } from "@/data/types";
 import { CATEGORY_MAP, GROUP_MAP } from "@/data/taxonomy";
 import { CompanyLogo } from "./company-logo";
+import { HoverPrefetchLink } from "./hover-prefetch-link";
 
-export function CompanyCard({ company }: { company: Company }) {
+export function CompanyCard({ company }: { company: CompanySummary }) {
   const cats = (company.categories || [])
     .map((k) => CATEGORY_MAP[k])
     .filter(Boolean)
     .slice(0, 3);
 
   return (
-    <a
+    <HoverPrefetchLink
       href={`/companies/${company.slug}`}
       className="group flex flex-col rounded-xl border border-border/60 bg-card/30 p-4 transition-colors hover:border-border hover:bg-card/60"
     >
@@ -18,7 +19,6 @@ export function CompanyCard({ company }: { company: Company }) {
           <CompanyLogo
             name={company.name}
             src={company.logo}
-            domain={company.logoDomain}
             className="h-full w-full bg-transparent"
           />
         </div>
@@ -44,6 +44,6 @@ export function CompanyCard({ company }: { company: Company }) {
           );
         })}
       </div>
-    </a>
+    </HoverPrefetchLink>
   );
 }

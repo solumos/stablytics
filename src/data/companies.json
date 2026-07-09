@@ -1403,7 +1403,7 @@
     "logoDomain": "api3.org",
     "notable": "Pioneered first-party oracles and OEV recapture.",
     "status": "active",
-    "logo": "/company-logos/api3.ico"
+    "logo": "/company-logos/api3.png"
   },
   {
     "name": "Apollo Global Management",
@@ -1432,7 +1432,7 @@
     "logoDomain": "apollo.com",
     "notable": "Tokenized private-credit fund used as on-chain reserve collateral.",
     "status": "active",
-    "logo": "/company-logos/apollo.ico"
+    "logo": "/company-logos/apollo.png"
   },
   {
     "name": "Aquanow",
@@ -2994,7 +2994,7 @@
     "logoDomain": "bitmart.com",
     "notable": "Global Dollar Network partner.",
     "status": "active",
-    "logo": "/company-logos/bitmart.ico"
+    "logo": "/company-logos/bitmart.png"
   },
   {
     "name": "Bitnob",
@@ -3392,7 +3392,7 @@
     "logoDomain": "bitwiseinvestments.com",
     "notable": "Filed for a dedicated Stablecoin & Tokenization ETF.",
     "status": "active",
-    "logo": "/company-logos/bitwise.ico"
+    "logo": "/company-logos/bitwise.png"
   },
   {
     "name": "BlackRock",
@@ -3594,7 +3594,7 @@
     "logoDomain": "blockradar.co",
     "notable": "Powers stablecoin wallets for 100+ fintechs across emerging markets.",
     "status": "active",
-    "logo": "/company-logos/blockradar.ico"
+    "logo": "/company-logos/blockradar.png"
   },
   {
     "name": "Blocksense",
@@ -5812,7 +5812,7 @@
     "logoDomain": "coinone.co.kr",
     "notable": "One of South Korea's licensed 'big four' won-market exchanges.",
     "status": "active",
-    "logo": "/company-logos/coinone.ico"
+    "logo": "/company-logos/coinone.png"
   },
   {
     "name": "CoinPayments",
@@ -6465,7 +6465,7 @@
     "logoDomain": "crypto.com",
     "notable": "Announced plans to launch a house stablecoin in 2025.",
     "status": "active",
-    "logo": "/company-logos/crypto-com.ico"
+    "logo": "/company-logos/crypto-com.png"
   },
   {
     "name": "Crystal Intelligence",
@@ -6870,7 +6870,7 @@
     "logoDomain": "dbs.com",
     "notable": "Among the first major global banks to operate a digital-asset exchange and custody service.",
     "status": "active",
-    "logo": "/company-logos/dbs-bank.ico"
+    "logo": "/company-logos/dbs-bank.png"
   },
   {
     "name": "deBridge",
@@ -6941,7 +6941,8 @@
     ],
     "logoDomain": "decaf.so",
     "notable": "Stablecoin off-ramp at 350,000+ MoneyGram locations.",
-    "status": "active"
+    "status": "active",
+    "logo": "/company-logos/decaf.png"
   },
   {
     "name": "DeCard",
@@ -7012,7 +7013,7 @@
     "logoDomain": "deel.com",
     "notable": "Launched DLUSD payroll stablecoin (issued via Bridge, settled on Tempo) in 2026.",
     "status": "active",
-    "logo": "/company-logos/deel.ico"
+    "logo": "/company-logos/deel.png"
   },
   {
     "name": "DefiLlama",
@@ -7135,7 +7136,7 @@
     "logoDomain": "dfns.co",
     "notable": "Custody/key-management infra used by Circle and MoonPay.",
     "status": "active",
-    "logo": "/company-logos/dfns.ico"
+    "logo": "/company-logos/dfns.png"
   },
   {
     "name": "dForce",
@@ -7982,7 +7983,7 @@
     "logoDomain": "exodus.com",
     "notable": "One of few publicly listed self-custody wallet companies.",
     "status": "active",
-    "logo": "/company-logos/exodus.ico"
+    "logo": "/company-logos/exodus.png"
   },
   {
     "name": "f(x) Protocol",
@@ -9733,7 +9734,7 @@
     "logoDomain": "goldmansachs.com",
     "notable": "Launched a stablecoin reserves MMF in the GENIUS Act era.",
     "status": "active",
-    "logo": "/company-logos/goldman-sachs.ico"
+    "logo": "/company-logos/goldman-sachs.png"
   },
   {
     "name": "Google (Agent Payments Protocol / AP2)",
@@ -10684,7 +10685,7 @@
     "logoDomain": "initia.xyz",
     "notable": "Cosmos L1 powering a network of interwoven rollups (N1).",
     "status": "active",
-    "logo": "/company-logos/initia.ico"
+    "logo": "/company-logos/initia.png"
   },
   {
     "name": "Injective",
@@ -11644,7 +11645,7 @@
     "logoDomain": "koywe.com",
     "notable": "Partner of Mural Pay for LatAm currency conversion.",
     "status": "active",
-    "logo": "/company-logos/koywe.ico"
+    "logo": "/company-logos/koywe.png"
   },
   {
     "name": "Kraken",
@@ -12789,7 +12790,7 @@
     "logoDomain": "maple.finance",
     "notable": "Leading institutional onchain credit; syrupUSDC yield product.",
     "status": "active",
-    "logo": "/company-logos/maple.ico"
+    "logo": "/company-logos/maple.png"
   },
   {
     "name": "MarginFi",
@@ -13197,7 +13198,7 @@
     "logoDomain": "mercadopago.com",
     "notable": "Serves hundreds of millions of users across Latin America; a leading fiat on/off-ramp for stablecoins in the region.",
     "status": "active",
-    "logo": "/company-logos/mercado-pago.ico"
+    "logo": "/company-logos/mercado-pago.png"
   },
   {
     "name": "Mercury",
@@ -14347,7 +14348,7 @@
     "logoDomain": "nexo.com",
     "notable": "Dual credit/debit crypto Mastercard.",
     "status": "active",
-    "logo": "/company-logos/nexo.ico"
+    "logo": "/company-logos/nexo.png"
   },
   {
     "name": "Nium",
@@ -15307,7 +15308,7 @@
     "logoDomain": "orbiter.finance",
     "notable": "Specializes in fast, low-cost cross-rollup transfers.",
     "status": "active",
-    "logo": "/company-logos/orbiter.ico"
+    "logo": "/company-logos/orbiter.png"
   },
   {
     "name": "Orca",
@@ -15787,7 +15788,7 @@
     "logoDomain": "particle.network",
     "notable": "Combines embedded wallets with chain abstraction.",
     "status": "active",
-    "logo": "/company-logos/particle-network.ico"
+    "logo": "/company-logos/particle-network.png"
   },
   {
     "name": "Partior",
@@ -16338,7 +16339,7 @@
     "logoDomain": "plasma.to",
     "notable": "Tether/Bitfinex-aligned; positioned as a direct challenger to TRON for USDT settlement.",
     "status": "active",
-    "logo": "/company-logos/plasma.ico",
+    "logo": "/company-logos/plasma.png",
     "hq": "London, UK"
   },
   {
@@ -17267,7 +17268,7 @@
     "logoDomain": "ramses.exchange",
     "notable": "ve(3,3) concentrated-liquidity model; key stable-liquidity hub for Frax and partners.",
     "status": "active",
-    "logo": "/company-logos/ramses-pharaoh.ico"
+    "logo": "/company-logos/ramses-pharaoh.png"
   },
   {
     "name": "Range",
@@ -17391,7 +17392,7 @@
     "logoDomain": "raydium.io",
     "notable": "Major Solana stablecoin trading venue.",
     "status": "active",
-    "logo": "/company-logos/raydium.ico"
+    "logo": "/company-logos/raydium.png"
   },
   {
     "name": "RD Technologies",
@@ -18771,7 +18772,7 @@
     "logoDomain": "skip.build",
     "notable": "IBC Eureka connects Cosmos to Ethereum via light clients (2025).",
     "status": "active",
-    "logo": "/company-logos/skip-ibc-eureka.ico"
+    "logo": "/company-logos/skip-ibc-eureka.png"
   },
   {
     "name": "Sky",
@@ -19014,7 +19015,7 @@
     "logoDomain": "sofi.com",
     "notable": "First US national bank to issue a stablecoin on a public, permissionless blockchain, made available to ~15 million members.",
     "status": "active",
-    "logo": "/company-logos/sofi.ico"
+    "logo": "/company-logos/sofi.png"
   },
   {
     "name": "Solana",
@@ -19590,7 +19591,7 @@
     "logoDomain": "stably.io",
     "notable": "Early stablecoin-as-a-service provider; Algorand/Stacks partner.",
     "status": "active",
-    "logo": "/company-logos/stably.ico"
+    "logo": "/company-logos/stably.png"
   },
   {
     "name": "StakeStone",
@@ -21029,7 +21030,7 @@
     "logoDomain": "texascapitalbank.com",
     "notable": "Among the US banks providing reserve and banking services to stablecoin issuers.",
     "status": "active",
-    "logo": "/company-logos/texas-capital-bank.ico"
+    "logo": "/company-logos/texas-capital-bank.png"
   },
   {
     "name": "The Better Money Company",
@@ -22128,7 +22129,7 @@
     "logoDomain": "trustwallet.com",
     "notable": "One of the largest mobile crypto wallets globally.",
     "status": "active",
-    "logo": "/company-logos/trust-wallet.ico"
+    "logo": "/company-logos/trust-wallet.png"
   },
   {
     "name": "Turnkey",
@@ -22191,7 +22192,7 @@
     "logoDomain": "usbank.com",
     "notable": "Custodies reserves backing Anchorage Digital Bank's payment stablecoins.",
     "status": "active",
-    "logo": "/company-logos/us-bank.ico"
+    "logo": "/company-logos/us-bank.png"
   },
   {
     "name": "UBS",
@@ -22971,7 +22972,7 @@
     "logoDomain": "wanchain.org",
     "notable": "One of the earliest interoperability-focused chains (2017).",
     "status": "active",
-    "logo": "/company-logos/wanchain.ico"
+    "logo": "/company-logos/wanchain.png"
   },
   {
     "name": "WazirX",
@@ -23677,7 +23678,7 @@
     "logoDomain": "yala.org",
     "notable": "Bitcoin-collateralized stablecoin (BTCFi).",
     "status": "active",
-    "logo": "/company-logos/yala.ico"
+    "logo": "/company-logos/yala.png"
   },
   {
     "name": "Yearn Finance",

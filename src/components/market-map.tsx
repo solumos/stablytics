@@ -2,6 +2,7 @@ import { GROUPS, categoriesForGroup } from "@/data/taxonomy";
 import { companiesByCategory, topByCategory, totalCompanies } from "@/data/companies";
 import { CATEGORIES } from "@/data/taxonomy";
 import { CompanyLogo } from "./company-logo";
+import { HoverPrefetchLink } from "./hover-prefetch-link";
 
 // Readable text color (dark on light accents like amber, white otherwise).
 function readableOn(hex: string): string {
@@ -16,21 +17,19 @@ function LogoTile({
   slug,
   name,
   logo,
-  domain,
 }: {
   slug: string;
   name: string;
   logo?: string;
-  domain?: string;
 }) {
   return (
-    <a
+    <HoverPrefetchLink
       href={`/companies/${slug}`}
       title={name}
       className="flex h-5 w-5 items-center justify-center rounded-[3px] bg-white p-[1.5px] ring-1 ring-black/5 transition hover:z-10 hover:scale-125 hover:ring-2 hover:ring-[var(--accent)]"
     >
-      <CompanyLogo name={name} src={logo} domain={domain} className="h-full w-full bg-transparent" />
-    </a>
+      <CompanyLogo name={name} src={logo} className="h-full w-full bg-transparent" />
+    </HoverPrefetchLink>
   );
 }
 
@@ -52,13 +51,13 @@ function CategoryBox({
         className="flex items-center justify-between gap-1.5 px-1.5 py-[3px]"
         style={{ backgroundColor: accent }}
       >
-        <a
+        <HoverPrefetchLink
           href={`/companies?category=${catKey}`}
           className="truncate text-[0.62rem] font-bold leading-tight hover:underline"
           style={{ color: headerText }}
         >
           {label}
-        </a>
+        </HoverPrefetchLink>
         <span
           className="text-[0.55rem] font-semibold tabular-nums"
           style={{ color: headerText, opacity: 0.85 }}
@@ -68,7 +67,7 @@ function CategoryBox({
       </div>
       <div className="flex flex-wrap gap-[3px] p-1">
         {all.map((c) => (
-          <LogoTile key={c.slug} slug={c.slug} name={c.name} logo={c.logo} domain={c.logoDomain} />
+          <LogoTile key={c.slug} slug={c.slug} name={c.name} logo={c.logo} />
         ))}
       </div>
     </div>
@@ -86,9 +85,9 @@ export function MarketMap() {
         <p className="text-xs text-muted-foreground">
           <span className="font-semibold text-foreground">{totalCompanies}</span> companies ·{" "}
           {CATEGORIES.length} categories ·{" "}
-          <a href="/companies" className="text-emerald-400 hover:underline">
+          <HoverPrefetchLink href="/companies" className="text-emerald-400 hover:underline">
             search the directory →
-          </a>
+          </HoverPrefetchLink>
         </p>
       </div>
 
@@ -138,9 +137,9 @@ export function MarketMap() {
 
       <p className="mt-4 text-center text-xs text-muted-foreground/70">
         The full landscape · {totalCompanies} companies · hover a logo for its name ·{" "}
-        <a href="/companies" className="text-emerald-400 hover:underline">
+        <HoverPrefetchLink href="/companies" className="text-emerald-400 hover:underline">
           open the searchable directory →
-        </a>
+        </HoverPrefetchLink>
       </p>
     </div>
   );
