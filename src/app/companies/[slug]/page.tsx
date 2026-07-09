@@ -163,12 +163,14 @@ export default async function CompanyPage({
       {/* Header */}
       <div className="flex flex-col gap-5 border-b border-border/50 pb-8 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-4">
-          <CompanyLogo
-            name={company.name}
-            src={company.logo}
-            domain={company.logoDomain}
-            className="h-16 w-16"
-          />
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-white p-1.5 ring-1 ring-black/5">
+            <CompanyLogo
+              name={company.name}
+              src={company.logo}
+              domain={company.logoDomain}
+              className="h-full w-full bg-transparent"
+            />
+          </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
