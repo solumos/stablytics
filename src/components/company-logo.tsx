@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const COLORS = [
@@ -21,31 +18,25 @@ function initials(name: string): string {
 }
 
 /**
- * Renders a company logo with graceful fallback:
- * explicit src -> Clearbit logo (by domain) -> favicon -> colored monogram.
+ * Renders a company's local logo, or a colored monogram when it has none.
+ * No client-side fallback chain: logos are prefetched into
+ * public/company-logos/ and scripts/check-logos.mjs fails the build on
+ * broken paths, so this stays a server-renderable component (no hooks) —
+ * the ~1,500 tiles on the map hydrate nothing.
  */
 export function CompanyLogo({
   name,
   src,
-  domain,
   className,
+  eager = false,
 }: {
   name: string;
   src?: string;
-  domain?: string;
   className?: string;
+  /** Load immediately (above-the-fold placements like the profile hero). */
+  eager?: boolean;
 }) {
-  const candidates: string[] = [];
-  if (src) candidates.push(src);
-  if (domain) {
-    candidates.push(`https://icons.duckduckgo.com/ip3/${domain}.ico`);
-    candidates.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
-  }
-
-  const [idx, setIdx] = useState(0);
-  const url = candidates[idx];
-
-  if (!url) {
+  if (!src) {
     return (
       <span
         className={cn(
@@ -62,10 +53,10 @@ export function CompanyLogo({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={url}
+      src={src}
       alt={`${name} logo`}
-      loading="lazy"
-      onError={() => setIdx((i) => i + 1)}
+      loading={eager ? "eager" : "lazy"}
+      decoding="async"
       className={cn("shrink-0 rounded-md bg-white/[0.04] object-contain", className)}
     />
   );

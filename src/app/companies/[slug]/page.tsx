@@ -14,6 +14,7 @@ import { companies, getCompany, validCategories } from "@/data/companies";
 import { CATEGORY_MAP, GROUP_MAP, groupForCategory } from "@/data/taxonomy";
 import { CompanyLogo } from "@/components/company-logo";
 import { CompanyCard } from "@/components/company-card";
+import { HoverPrefetchLink } from "@/components/hover-prefetch-link";
 import { JsonLd } from "@/components/json-ld";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 
@@ -153,12 +154,12 @@ export default async function CompanyPage({
     <>
       <JsonLd data={jsonLd} />
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <a
+      <HoverPrefetchLink
         href="/companies"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" /> Directory
-      </a>
+      </HoverPrefetchLink>
 
       {/* Header */}
       <div className="flex flex-col gap-5 border-b border-border/50 pb-8 sm:flex-row sm:items-start sm:justify-between">
@@ -167,8 +168,8 @@ export default async function CompanyPage({
             <CompanyLogo
               name={company.name}
               src={company.logo}
-              domain={company.logoDomain}
               className="h-full w-full bg-transparent"
+              eager
             />
           </div>
           <div>
@@ -187,14 +188,14 @@ export default async function CompanyPage({
               {cats.map((c) => {
                 const g = GROUP_MAP[c.group];
                 return (
-                  <a
+                  <HoverPrefetchLink
                     key={c.key}
                     href={`/companies?category=${c.key}`}
                     className="rounded-full px-2.5 py-0.5 text-xs font-medium transition-opacity hover:opacity-80"
                     style={{ backgroundColor: `${g.accent}1a`, color: g.accent }}
                   >
                     {c.label}
-                  </a>
+                  </HoverPrefetchLink>
                 );
               })}
             </div>
