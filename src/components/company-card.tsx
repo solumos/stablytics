@@ -14,12 +14,14 @@ export function CompanyCard({ company }: { company: Company }) {
       className="group flex flex-col rounded-xl border border-border/60 bg-card/30 p-4 transition-colors hover:border-border hover:bg-card/60"
     >
       <div className="flex items-center gap-3">
-        <CompanyLogo
-          name={company.name}
-          src={company.logo}
-          domain={company.logoDomain}
-          className="h-10 w-10"
-        />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white p-1 ring-1 ring-black/5">
+          <CompanyLogo
+            name={company.name}
+            src={company.logo}
+            domain={company.logoDomain}
+            className="h-full w-full bg-transparent"
+          />
+        </div>
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-semibold leading-tight">{company.name}</h3>
           <p className="truncate text-xs text-muted-foreground">{company.tagline}</p>
