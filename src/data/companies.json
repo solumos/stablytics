@@ -17664,7 +17664,7 @@
       "infra-orchestration"
     ],
     "tagline": "AppKit and WalletKit SDKs for onchain apps and wallets",
-    "description": "Reown (formerly WalletConnect Inc., rebranded September 2024) is the company building the developer tooling layer on the WalletConnect Network: AppKit for onchain apps and WalletKit for wallets, spanning 700+ wallets across EVM chains, Solana, Bitcoin, and Tron. Its AppKit payments stack — fiat onramps, swaps, exchange deposits, and self-custodial checkout — lets apps accept USDC across Ethereum, Optimism, Arbitrum, Base, Polygon, and Solana, and USDT on all of those except Base. Led by CEO Jess Houlgrave, while founder Pedro Gomes moved to lead the WalletConnect Foundation.",
+    "description": "Reown is WalletConnect's platform for builders of onchain finance; providing an industry-leading SDK compatible with the EVM ecosystem, Solana, Bitcoin, Ton and Tron chains. Offering performant solutions - including secure authentication methods, wallet funding solutions, in-app interactions and in-depth analytics - it unlocks seamless monetization and scaling for all types of crypto enabled apps, from DeFi, to consumer apps, to blockchain games. Leveraging WalletConnect's network of 500+ wallets, Reown enables builders, founders and their wider teams to build smarter, launch faster and scale to the millions.",
     "website": "https://reown.com",
     "twitter": "@reown_",
     "hq": "Global",
@@ -17689,6 +17689,7 @@
       "Polygon",
       "Solana",
       "Bitcoin",
+      "TON",
       "Tron"
     ],
     "logoDomain": "reown.com",
@@ -22909,7 +22910,7 @@
       "payments-psp"
     ],
     "tagline": "The connectivity layer for the financial internet",
-    "description": "WalletConnect is the open wallet-to-app connectivity protocol created in 2018 by Pedro Gomes — now a decentralized network run by 20+ node operators, stewarded by the WalletConnect Foundation and secured by the WCT token, connecting 54M+ wallets to 80,000+ apps with ~$400B in annual network volume. WalletConnect Pay turns that reach into stablecoin payment rails, including a January 2026 Ingenico partnership bringing USDC, EURC and USDT acceptance to millions of Android POS terminals.",
+    "description": "WalletConnect is the leading global connectivity network for wallets, banks, fintechs, financial institutions, and DeFi. The decentralized network provides a single, secure, and compliant access point for moving any asset on any chain, connecting 900M end users, 54M+ wallets, 80,000+ apps, hundreds of institutions, and approximately $2 trillion in network value. Built on this foundation, WalletConnect powers a growing suite of infrastructure for digital asset connectivity, payments, and financial services, enabling institutions and developers to build seamless, interoperable experiences across the onchain economy. WalletConnect Pay is WalletConnect's digital payments platform, enabling PSPs, merchants, wallets, and financial institutions to seamlessly accept and settle stablecoin payments through a single, compliant integration.",
     "website": "https://walletconnect.network",
     "twitter": "@WalletConnect",
     "hq": "Grand Cayman, Cayman Islands",
