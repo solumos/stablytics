@@ -17624,26 +17624,25 @@
     "logo": "/company-logos/relay-link.png"
   },
   {
-    "name": "Reown (WalletConnect)",
+    "name": "Reown",
     "slug": "reown",
     "categories": [
       "wallets",
-      "infra-orchestration",
-      "payments-psp"
+      "infra-orchestration"
     ],
-    "tagline": "WalletConnect protocol and AppKit / WalletKit",
-    "description": "Reown (formerly WalletConnect Inc.) builds the WalletConnect protocol connecting 500M+ wallet connections, plus AppKit and WalletKit toolkits for embedded and connected wallet UX. WalletConnect Pay extends stablecoin payments across the WalletConnect network, including a partnership with Polygon.",
+    "tagline": "AppKit and WalletKit SDKs for onchain apps and wallets",
+    "description": "Reown (formerly WalletConnect Inc., rebranded September 2024) is the company building the developer tooling layer on the WalletConnect Network: AppKit for onchain apps and WalletKit for wallets, spanning 700+ wallets across EVM chains, Solana, Bitcoin, and Tron. Its AppKit payments stack — fiat onramps, swaps, exchange deposits, and self-custodial checkout — lets apps accept USDC across Ethereum, Optimism, Arbitrum, Base, Polygon, and Solana, and USDT on all of those except Base. Led by CEO Jess Houlgrave, while founder Pedro Gomes moved to lead the WalletConnect Foundation.",
     "website": "https://reown.com",
     "twitter": "@reown_",
     "hq": "Global",
     "founded": "2018",
-    "stage": "Token-backed (WCT)",
-    "funding": "$25M+ (Series B)",
+    "stage": "Series B",
+    "funding": "~$38M raised; $13M Series B (Jan 2025) led by USV and 1kx, with Shopify and Kraken Ventures",
     "keyProducts": [
-      "WalletConnect",
       "AppKit",
       "WalletKit",
-      "WalletConnect Pay"
+      "AppKit Pay",
+      "Reown Dashboard"
     ],
     "stablecoins": [
       "USDC",
@@ -17651,13 +17650,16 @@
     ],
     "chains": [
       "Ethereum",
-      "Solana",
-      "Polygon",
+      "Optimism",
+      "Arbitrum",
       "Base",
-      "many"
+      "Polygon",
+      "Solana",
+      "Bitcoin",
+      "Tron"
     ],
     "logoDomain": "reown.com",
-    "notable": "Operates the ubiquitous WalletConnect standard; WalletConnect Pay for stablecoins.",
+    "notable": "Its SDKs are the default way to build on WalletConnect — AppKit Pay brings USDC/USDT checkout from 600+ self-custodial wallets.",
     "status": "active",
     "logo": "/company-logos/reown.ico"
   },
@@ -20587,6 +20589,32 @@
     "logo": "/company-logos/synthetix.ico"
   },
   {
+    "name": "t-0 Network",
+    "slug": "t-0-network",
+    "categories": [
+      "crossborder",
+      "infra-orchestration"
+    ],
+    "tagline": "USDT-powered net-settlement network for cross-border payments",
+    "description": "t-0 Network is an institutional settlement layer for stablecoin-powered payments, connecting licensed banks, fintechs, and payment providers peer-to-peer through a single API with USDT as the common settlement asset. Members transact across 1,200+ cross-currency corridors spanning 50+ countries and settle only net balances at a cadence they control, cutting FX exposure and removing the prefunding burden of correspondent banking. Tether announced a strategic investment in the network in February 2026.",
+    "website": "https://t-0.network",
+    "twitter": "@t0network",
+    "stage": "Pre-Seed",
+    "funding": "Undisclosed pre-seed led by Tether (Feb 2026); backed by Delphi Labs",
+    "keyProducts": [
+      "t-0 settlement network (patent-pending USDT net settlement)",
+      "Single payments API with provider SDKs",
+      "USDT Pay"
+    ],
+    "stablecoins": [
+      "USDT"
+    ],
+    "logoDomain": "t-0.network",
+    "notable": "Tether-backed non-custodial network using USDT to net-settle cross-border payments between 10+ licensed financial institutions.",
+    "status": "active",
+    "logo": "/company-logos/t-0-network.png"
+  },
+  {
     "name": "t3rn",
     "slug": "t3rn",
     "categories": [
@@ -22839,6 +22867,42 @@
     "notable": "Regulatory-grade issuance layer for non-USD stablecoins and tokenized precious metals under the Liechtenstein Blockchain Act.",
     "status": "active",
     "logo": "/company-logos/vnx.png"
+  },
+  {
+    "name": "WalletConnect",
+    "slug": "walletconnect",
+    "categories": [
+      "wallets",
+      "payments-psp"
+    ],
+    "tagline": "The connectivity layer for the financial internet",
+    "description": "WalletConnect is the open wallet-to-app connectivity protocol created in 2018 by Pedro Gomes — now a decentralized network run by 20+ node operators, stewarded by the WalletConnect Foundation and secured by the WCT token, connecting 54M+ wallets to 80,000+ apps with ~$400B in annual network volume. WalletConnect Pay turns that reach into stablecoin payment rails, including a January 2026 Ingenico partnership bringing USDC, EURC and USDT acceptance to millions of Android POS terminals.",
+    "website": "https://walletconnect.network",
+    "twitter": "@WalletConnect",
+    "hq": "Grand Cayman, Cayman Islands",
+    "founded": "2018",
+    "stage": "Token (WCT)",
+    "funding": "$10M raised by the Foundation in 2025 token sales (CoinList, Bitget, Echo)",
+    "keyProducts": [
+      "WalletConnect protocol",
+      "WalletConnect Pay",
+      "WCT token"
+    ],
+    "stablecoins": [
+      "USDC",
+      "USDT",
+      "EURC"
+    ],
+    "chains": [
+      "Ethereum",
+      "Optimism",
+      "Solana",
+      "Base"
+    ],
+    "logoDomain": "walletconnect.network",
+    "notable": "Ingenico partnership (Jan 2026) puts WalletConnect Pay stablecoin checkout on millions of physical POS terminals worldwide.",
+    "status": "active",
+    "logo": "/company-logos/walletconnect.ico"
   },
   {
     "name": "Wanchain",
