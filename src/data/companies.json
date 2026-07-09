@@ -125,6 +125,34 @@
     "logo": "/company-logos/21-analytics.ico"
   },
   {
+    "name": "A7A5",
+    "slug": "a7a5",
+    "categories": [
+      "issuers-fiat"
+    ],
+    "tagline": "Sanctioned ruble stablecoin powering Russia's shadow crypto economy",
+    "description": "Ruble-pegged stablecoin launched in January 2025 by Kyrgyzstan-registered Old Vector LLC, claimed to be backed 1:1 by ruble deposits at sanctioned Russian state defense bank Promsvyazbank and created for the A7 cross-border settlement network of sanctioned Moldovan fugitive Ilan Shor. Circulating on Ethereum and Tron, it became the primary settlement asset of Grinex, successor to the seized exchange Garantex, processing roughly $93 billion in its first year. A7A5 is a sanctioned asset: the UK sanctioned A7A5 developer A7 LLC in May 2025 and issuer Old Vector and Grinex on 20 August 2025, US OFAC designated Old Vector, Grinex, and the A7 network on 14 August 2025, and the EU's 19th sanctions package (23 October 2025) imposed an outright ban on all A7A5 transactions, effective 25 November 2025.",
+    "website": "https://a7a5.io",
+    "twitter": "@A7A5official",
+    "hq": "Bishkek, Kyrgyzstan",
+    "founded": "2025",
+    "stage": "Private",
+    "keyProducts": [
+      "A7A5 token (yield-bearing RUB stablecoin paying holders 50% of reserve interest)"
+    ],
+    "stablecoins": [
+      "A7A5"
+    ],
+    "chains": [
+      "Ethereum",
+      "Tron"
+    ],
+    "logoDomain": "a7a5.io",
+    "notable": "First crypto asset ever subjected to a full EU transaction ban (19th sanctions package, Annex LIII).",
+    "status": "active",
+    "logo": "/company-logos/a7a5.ico"
+  },
+  {
     "name": "Aave",
     "slug": "aave",
     "categories": [
