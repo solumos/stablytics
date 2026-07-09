@@ -6922,16 +6922,18 @@
       "cards",
       "onofframp"
     ],
-    "tagline": "Stablecoin Visa card with global acceptance",
-    "description": "DeCard, part of the DeFi Technologies / Deus ecosystem, launched a Visa card in 2025 letting users convert stablecoins like USDT and USDC for daily spending at 150M+ Visa merchants, followed by premium credit card products with Visa.",
-    "website": "https://decard.io",
-    "twitter": "@decard_io",
+    "tagline": "Stablecoin spending card from former Diners Club Singapore",
+    "description": "DeCard is the stablecoin card brand of DCS Card Centre, the MAS-regulated Singapore card issuer founded in 1973 as Diners Club Singapore. Launched with Visa in May 2025, it lets users top up USDT and USDC across Ethereum, Polygon, Solana, Tron and Base via its D-Vault account and spend at 150M+ Visa merchants, with the premium DeCard Luminaries credit card added in September 2025. Standard Chartered became its banking partner in November 2025, handling fiat and stablecoin settlement.",
+    "website": "https://www.thedecard.com/dcscc/en",
+    "twitter": "@DCS_DeCard",
     "hq": "Singapore",
-    "founded": "2023",
+    "founded": "2025",
     "stage": "Private",
+    "funding": "Parent DCS Fintech Holdings raised $10M strategic from Foresight Ventures (2023)",
     "keyProducts": [
       "DeCard Visa card",
-      "Stablecoin spending"
+      "DeCard Luminaries premium credit card",
+      "D-Vault account"
     ],
     "stablecoins": [
       "USDT",
@@ -6939,12 +6941,15 @@
     ],
     "chains": [
       "Ethereum",
+      "Polygon",
+      "Solana",
       "Tron",
-      "BNB Chain"
+      "Base"
     ],
-    "logoDomain": "decard.io",
-    "notable": "Premium Visa stablecoin card launched with Visa.",
-    "status": "active"
+    "logoDomain": "thedecard.com",
+    "notable": "Issued by 50-year-old ex-Diners Club Singapore, with Standard Chartered powering its fiat and stablecoin settlement since Nov 2025.",
+    "status": "active",
+    "logo": "/company-logos/decard.png"
   },
   {
     "name": "Deel",
